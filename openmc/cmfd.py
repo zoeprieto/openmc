@@ -2899,6 +2899,11 @@ class CMFDRun:
         # Set mesh for Mesh Filter
         mesh_filter.mesh = cmfd_mesh
 
+        # Create meshchar Filter object, stored internally
+        mesh_char_filter = openmc.lib.MeshCharFilter()
+        # Set mesh for Mesh Filter
+        mesh_char_filter.mesh = cmfd_mesh
+        
         # Set up energy filters, if applicable
         if self._energy_filters:
             # Create Energy Filter object, stored internally

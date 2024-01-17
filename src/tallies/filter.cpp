@@ -126,6 +126,8 @@ Filter* Filter::create(const std::string& type, int32_t id)
     return Filter::create<MaterialFromFilter>(id);
   } else if (type == "mesh") {
     return Filter::create<MeshFilter>(id);
+  } else if (type == "meshchar") {
+    return Filter::create<MeshCharFilter>(id);
   } else if (type == "meshsurface") {
     return Filter::create<MeshSurfaceFilter>(id);
   } else if (type == "mu") {

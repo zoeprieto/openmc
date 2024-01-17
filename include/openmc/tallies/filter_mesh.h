@@ -60,6 +60,7 @@ protected:
   Position translation_ {0.0, 0.0, 0.0}; //!< Filter translation
 };
 
+
 class MeshCharFilter : public Filter {
 public:
   //----------------------------------------------------------------------------
