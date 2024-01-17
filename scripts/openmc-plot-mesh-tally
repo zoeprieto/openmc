@@ -20,7 +20,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 
-from openmc import StatePoint, MeshFilter, UnstructuredMesh
+from openmc import StatePoint, MeshFilter, MeshCharFilter, UnstructuredMesh
 
 _COMBOBOX_SELECTED = '<<ComboboxSelected>>'
 

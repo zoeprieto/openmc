@@ -895,6 +895,7 @@ class ParticleType(IntEnum):
     PHOTON = 1
     ELECTRON = 2
     POSITRON = 3
+    NEUTRON_CONTRIBUTON = 4
 
     @classmethod
     def from_string(cls, value: str):

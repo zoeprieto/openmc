@@ -20,7 +20,7 @@ __all__ = [
     'Filter', 'AzimuthalFilter', 'CellFilter', 'CellbornFilter', 'CellfromFilter',
     'CellInstanceFilter', 'CollisionFilter', 'DistribcellFilter', 'DelayedGroupFilter',
     'EnergyFilter', 'EnergyoutFilter', 'EnergyFunctionFilter', 'LegendreFilter',
-    'MaterialFilter', 'MaterialFromFilter', 'MeshFilter', 'MeshBornFilter',
+    'MaterialFilter', 'MaterialFromFilter', 'MeshFilter', 'MeshBornFilter', 'MeshCharFilter',
     'MeshSurfaceFilter', 'MuFilter', 'MuSurfaceFilter', 'ParticleFilter', 'PolarFilter',
     'SphericalHarmonicsFilter', 'SpatialLegendreFilter', 'SurfaceFilter', 'UniverseFilter',
     'ZernikeFilter', 'ZernikeRadialFilter', 'filters'
@@ -421,6 +421,34 @@ class MeshFilter(Filter):
     def translation(self, translation):
         _dll.openmc_mesh_filter_set_translation(self._index, (c_double*3)(*translation))
 
+class MeshCharFilter(Filter):
+    filter_type = 'meshchar'
+
+    def __init__(self, mesh=None, uid=None, new=True, index=None):
+        super().__init__(uid, new, index)
+        if mesh is not None:
+            self.mesh = mesh
+
+    @property
+    def mesh(self):
+        index_mesh = c_int32()
+        _dll.openmc_mesh_filter_get_mesh(self._index, index_mesh)
+        return _get_mesh(index_mesh.value)
+
+    @mesh.setter
+    def mesh(self, mesh):
+        _dll.openmc_mesh_filter_set_mesh(self._index, mesh._index)
+
+    @property
+    def translation(self):
+        translation = (c_double*3)()
+        _dll.openmc_mesh_filter_get_translation(self._index, translation)
+        return tuple(translation)
+
+    @translation.setter
+    def translation(self, translation):
+        _dll.openmc_mesh_filter_set_translation(self._index, (c_double*3)(*translation))
+
 
 class MeshBornFilter(Filter):
     """MeshBorn filter stored internally.
@@ -644,6 +672,7 @@ _FILTER_TYPE_MAP = {
     'materialfrom': MaterialFromFilter,
     'mesh': MeshFilter,
     'meshborn': MeshBornFilter,
+    'meshchar': MeshCharFilter,
     'meshsurface': MeshSurfaceFilter,
     'mu': MuFilter,
     'musurface': MuSurfaceFilter,

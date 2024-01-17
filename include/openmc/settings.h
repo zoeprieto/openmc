@@ -105,9 +105,9 @@ extern int64_t
 extern int max_particle_events; //!< Maximum number of particle events
 extern ElectronTreatment
   electron_treatment; //!< how to treat secondary electrons
-extern array<double, 4>
+extern array<double, 5>
   energy_cutoff; //!< Energy cutoff in [eV] for each particle type
-extern array<double, 4>
+extern array<double, 5>
   time_cutoff; //!< Time cutoff in [s] for each particle type
 extern int
   legendre_to_tabular_points; //!< number of points to convert Legendres

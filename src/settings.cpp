@@ -100,8 +100,8 @@ int64_t max_particles_in_flight {100000};
 int max_particle_events {1000000};
 
 ElectronTreatment electron_treatment {ElectronTreatment::TTB};
-array<double, 4> energy_cutoff {0.0, 1000.0, 0.0, 0.0};
-array<double, 4> time_cutoff {INFTY, INFTY, INFTY, INFTY};
+array<double, 5> energy_cutoff {0.0, 1000.0, 0.0, 0.0, 0.0};
+array<double, 5> time_cutoff {INFTY, INFTY, INFTY, INFTY, INFTY};
 int legendre_to_tabular_points {C_NONE};
 int max_order {0};
 int n_log_bins {8000};
@@ -614,6 +614,10 @@ void read_settings_xml(pugi::xml_node root)
       energy_cutoff[3] =
         std::stod(get_node_value(node_cutoff, "energy_positron"));
     }
+    if (check_for_node(node_cutoff, "energy_neutron_contributon")) {
+      energy_cutoff[4] =
+        std::stod(get_node_value(node_cutoff, "energy_neutron_contributon"));
+    }
     if (check_for_node(node_cutoff, "time_neutron")) {
       time_cutoff[0] = std::stod(get_node_value(node_cutoff, "time_neutron"));
     }
@@ -625,6 +629,9 @@ void read_settings_xml(pugi::xml_node root)
     }
     if (check_for_node(node_cutoff, "time_positron")) {
       time_cutoff[3] = std::stod(get_node_value(node_cutoff, "time_positron"));
+    }
+    if (check_for_node(node_cutoff, "time_neutron_contributon")) {
+      time_cutoff[4] = std::stod(get_node_value(node_cutoff, "time_neutron_contributon"));
     }
   }
 

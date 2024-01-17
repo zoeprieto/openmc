@@ -21,10 +21,10 @@ from ._xml import get_text
 
 
 _FILTER_TYPES = (
-    'universe', 'material', 'cell', 'cellborn', 'surface', 'mesh', 'energy',
-    'energyout', 'mu', 'musurface', 'polar', 'azimuthal', 'distribcell', 'delayedgroup',
-    'energyfunction', 'cellfrom', 'materialfrom', 'legendre', 'spatiallegendre',
-    'sphericalharmonics', 'zernike', 'zernikeradial', 'particle', 'cellinstance',
+    'universe', 'material', 'cell', 'cellborn', 'surface', 'mesh', 'meshchar', 'adjointmesh', 
+    'adjointsourcemesh', 'energy', 'energyout', 'mu', 'musurface', 'polar', 'azimuthal', 
+    'distribcell', 'delayedgroup', 'energyfunction', 'cellfrom', 'materialfrom', 'legendre', 
+    'spatiallegendre', 'sphericalharmonics', 'zernike', 'zernikeradial', 'particle', 'cellinstance',
     'collision', 'time'
 )
 
@@ -34,7 +34,7 @@ _CURRENT_NAMES = (
     'z-min out', 'z-min in', 'z-max out', 'z-max in'
 )
 
-_PARTICLES = {'neutron', 'photon', 'electron', 'positron'}
+_PARTICLES = {'neutron', 'photon', 'electron', 'positron', 'neutron_contributon'}
 
 
 class FilterMeta(ABCMeta):
@@ -983,9 +983,8 @@ class MeshFilter(Filter):
             out.translation = [float(x) for x in translation.split()]
         return out
 
-
-class MeshBornFilter(MeshFilter):
-    """Filter events by the mesh cell a particle originated from.
+class MeshCharFilter(MeshFilter):
+    """Bins tally source event locations by mesh elements.
 
     Parameters
     ----------
@@ -1011,7 +1010,56 @@ class MeshBornFilter(MeshFilter):
 
     """
 
+class AdjointSourceMeshFilter(MeshFilter):
+    """Bins adjoint source event locations by mesh elements.
+    Parameters
+    ----------
+    mesh : openmc.MeshBase
+        The mesh object that events will be tallied onto
+    filter_id : int
+        Unique identifier for the filter
+    Attributes
+    ----------
+    mesh : openmc.MeshBase
+        The mesh object that events will be tallied onto
+    id : int
+        Unique identifier for the filter
+    translation : Iterable of float
+        This array specifies a vector that is used to translate (shift)
+        the mesh for this filter
+    bins : list of tuple
+        A list of mesh indices for each filter bin, e.g. [(1, 1, 1), (2, 1, 1),
+        ...]
+    num_bins : Integral
+        The number of filter bins
+    """
 
+
+    
+class AdjointMeshFilter(MeshFilter):
+    """Bins adjoint tally event locations by mesh elements.
+    Parameters
+    ----------
+    mesh : openmc.MeshBase
+        The mesh object that events will be tallied onto
+    filter_id : int
+        Unique identifier for the filter
+    Attributes
+    ----------
+    mesh : openmc.MeshBase
+        The mesh object that events will be tallied onto
+    id : int
+        Unique identifier for the filter
+    translation : Iterable of float
+        This array specifies a vector that is used to translate (shift)
+        the mesh for this filter
+    bins : list of tuple
+        A list of mesh indices for each filter bin, e.g. [(1, 1, 1), (2, 1, 1),
+        ...]
+    num_bins : Integral
+        The number of filter bins
+    """
+    
 class MeshSurfaceFilter(MeshFilter):
     """Filter events by surface crossings on a mesh.
 
