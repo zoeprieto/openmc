@@ -20,7 +20,7 @@ from ._xml import get_text
 
 
 _FILTER_TYPES = (
-    'universe', 'material', 'cell', 'cellborn', 'surface', 'mesh', 'energy',
+    'universe', 'material', 'cell', 'cellborn', 'surface', 'mesh', 'meshchar', 'energy',
     'energyout', 'mu', 'polar', 'azimuthal', 'distribcell', 'delayedgroup',
     'energyfunction', 'cellfrom', 'materialfrom', 'legendre', 'spatiallegendre',
     'sphericalharmonics', 'zernike', 'zernikeradial', 'particle', 'cellinstance',

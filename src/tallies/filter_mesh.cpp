@@ -122,6 +122,81 @@ extern "C" int openmc_mesh_filter_get_mesh(int32_t index, int32_t* index_mesh)
   return 0;
 }
 
+
+void MeshCharFilter::from_xml(pugi::xml_node node)
+{
+  auto bins_ = get_node_array<int32_t>(node, "bins");
+  if (bins_.size() != 1) {
+    fatal_error(
+      "Only one mesh can be specified per " + type_str() + " mesh filter.");
+  }
+
+  auto id = bins_[0];
+  auto search = model::mesh_map.find(id);
+  if (search != model::mesh_map.end()) {
+    set_mesh(search->second);
+  } else {
+    fatal_error(
+      fmt::format("Could not find mesh {} specified on tally filter.", id));
+  }
+
+  if (check_for_node(node, "translation")) {
+    set_translation(get_node_array<double>(node, "translation"));
+  }
+}
+
+void MeshCharFilter::get_all_bins(
+  const Particle& p, TallyEstimator estimator, FilterMatch& match) const
+{
+  Position r = p.r_source();
+
+  // apply translation if present
+  if (translated_) {
+    r -= translation();
+  }
+
+  auto bin = model::meshes[mesh_]->get_bin(r);
+  if (bin >= 0) {
+    match.bins_.push_back(bin);
+    match.weights_.push_back(1.0);
+  }
+
+}
+
+void MeshCharFilter::to_statepoint(hid_t filter_group) const
+{
+  Filter::to_statepoint(filter_group);
+  write_dataset(filter_group, "bins", model::meshes[mesh_]->id_);
+  if (translated_) {
+    write_dataset(filter_group, "translation", translation_);
+  }
+}
+
+std::string MeshCharFilter::text_label(int bin) const
+{
+  auto& mesh = *model::meshes.at(mesh_);
+  std::string label = mesh.bin_label(bin);
+  return label;
+}
+
+void MeshCharFilter::set_mesh(int32_t mesh)
+{
+  mesh_ = mesh;
+  n_bins_ = model::meshes[mesh_]->n_bins();
+}
+
+void MeshCharFilter::set_translation(const Position& translation)
+{
+  translated_ = true;
+  translation_ = translation;
+}
+
+void MeshCharFilter::set_translation(const double translation[3])
+{
+  this->set_translation({translation[0], translation[1], translation[2]});
+}
+
+
 extern "C" int openmc_mesh_filter_set_mesh(int32_t index, int32_t index_mesh)
 {
   // Make sure this is a valid index to an allocated filter.

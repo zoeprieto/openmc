@@ -262,6 +262,9 @@ public:
   int& cell_last(int i) { return cell_last_[i]; }
   const int& cell_last(int i) const { return cell_last_[i]; }
 
+  Position& r_source() { return r_source_; }
+  const Position& r_source() const { return r_source_; }
+
   // Coordinates of last collision or reflective/periodic surface
   // crossing for current tallies
   Position& r_last_current() { return r_last_current_; }
@@ -326,6 +329,7 @@ private:
   Position r_last_current_; //!< coordinates of the last collision or
                             //!< reflective/periodic surface crossing for
                             //!< current tallies
+  Position r_source_; //!< birth position
   Position r_last_;         //!< previous coordinates
   Direction u_last_;        //!< previous direction coordinates
 
