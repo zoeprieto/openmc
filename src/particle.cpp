@@ -149,6 +149,7 @@ void Particle::event_calculate_xs()
   u_last() = u();
   r_last() = r();
   time_last() = time();
+  r_history().push_back(r_last());
 
   // Reset event variables
   event() = TallyEvent::KILL;

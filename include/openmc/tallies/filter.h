@@ -34,6 +34,7 @@ enum class FilterType {
   MATERIALFROM,
   MESH,
   MESHCHAR,
+  ADJOINTMESH,
   MESH_SURFACE,
   MU,
   PARTICLE,
