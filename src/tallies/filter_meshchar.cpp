@@ -1,29 +1,33 @@
-#include "openmc/tallies/filter_adjointmesh.h"
+#include "openmc/tallies/filter_meshchar.h"
 
 #include "openmc/capi.h"
 #include "openmc/mesh.h"
 
 namespace openmc {
 
-void AdjointMeshFilter::get_all_bins(
+void MeshCharFilter::get_all_bins(
   const Particle& p, TallyEstimator estimator, FilterMatch& match) const
 {
-  for (auto r: p.r_history()){
-      // apply translation if present
-      if (translated_) r -= translation();
-      auto bin = model::meshes[mesh_]->get_bin(r);
-      if (bin >= 0) {
-        match.bins_.push_back(bin);
-        match.weights_.push_back(1.0);
-      }
+  Position r = p.r_source();
+
+  // apply translation if present
+  if (translated_) {
+    r -= translation();
   }
+
+  auto bin = model::meshes[mesh_]->get_bin(r);
+  if (bin >= 0) {
+    match.bins_.push_back(bin);
+    match.weights_.push_back(1.0);
+  }
+
 }
 
 //==============================================================================
 // C-API functions
 //==============================================================================
 
-extern "C" int openmc_adjointmesh_filter_get_mesh(int32_t index, int32_t* index_mesh)
+extern "C" int openmc_meshchar_filter_get_mesh(int32_t index, int32_t* index_mesh)
 {
   if (!index_mesh) {
     set_errmsg("Mesh index argument is a null pointer.");
@@ -36,7 +40,7 @@ extern "C" int openmc_adjointmesh_filter_get_mesh(int32_t index, int32_t* index_
 
   // Get a pointer to the filter and downcast.
   const auto& filt_base = model::tally_filters[index].get();
-  auto* filt = dynamic_cast<AdjointMeshFilter*>(filt_base);
+  auto* filt = dynamic_cast<MeshCharFilter*>(filt_base);
 
   // Check the filter type.
   if (!filt) {
@@ -49,7 +53,7 @@ extern "C" int openmc_adjointmesh_filter_get_mesh(int32_t index, int32_t* index_
   return 0;
 }
 
-extern "C" int openmc_adjointmesh_filter_set_mesh(int32_t index, int32_t index_mesh)
+extern "C" int openmc_meshchar_filter_set_mesh(int32_t index, int32_t index_mesh)
 {
   // Make sure this is a valid index to an allocated filter.
   if (int err = verify_filter(index))
@@ -57,7 +61,7 @@ extern "C" int openmc_adjointmesh_filter_set_mesh(int32_t index, int32_t index_m
 
   // Get a pointer to the filter and downcast.
   const auto& filt_base = model::tally_filters[index].get();
-  auto* filt = dynamic_cast<AdjointMeshFilter*>(filt_base);
+  auto* filt = dynamic_cast<MeshCharFilter*>(filt_base);
 
   // Check the filter type.
   if (!filt) {
@@ -76,7 +80,7 @@ extern "C" int openmc_adjointmesh_filter_set_mesh(int32_t index, int32_t index_m
   return 0;
 }
 
-extern "C" int openmc_adjointmesh_filter_get_translation(
+extern "C" int openmc_meshchar_filter_get_translation(
   int32_t index, double translation[3])
 {
   // Make sure this is a valid index to an allocated filter
@@ -87,14 +91,14 @@ extern "C" int openmc_adjointmesh_filter_get_translation(
   const auto& filter = model::tally_filters[index];
   if (filter->type() != FilterType::MESH &&
       filter->type() != FilterType::MESH_SURFACE &&
-      filter->type() != FilterType::ADJOINTMESH && 
+      filter->type() != FilterType::ADJOINTMESH &&
       filter->type() != FilterType::MESHCHAR) {
     set_errmsg("Tried to get a translation from a non-mesh-based filter.");
     return OPENMC_E_INVALID_TYPE;
   }
 
   // Get translation from the mesh filter and set value
-  auto mesh_filter = dynamic_cast<AdjointMeshFilter*>(filter.get());
+  auto mesh_filter = dynamic_cast<MeshCharFilter*>(filter.get());
   const auto& t = mesh_filter->translation();
   for (int i = 0; i < 3; i++) {
     translation[i] = t[i];
@@ -103,7 +107,7 @@ extern "C" int openmc_adjointmesh_filter_get_translation(
   return 0;
 }
 
-extern "C" int openmc_adjointmesh_filter_set_translation(
+extern "C" int openmc_meshchar_filter_set_translation(
   int32_t index, double translation[3])
 {
   // Make sure this is a valid index to an allocated filter
@@ -113,7 +117,7 @@ extern "C" int openmc_adjointmesh_filter_set_translation(
   const auto& filter = model::tally_filters[index];
   // Check the filter type
   if (filter->type() != FilterType::MESH &&
-      filter->type() != FilterType::MESH_SURFACE&&
+      filter->type() != FilterType::MESH_SURFACE &&
       filter->type() != FilterType::ADJOINTMESH && 
       filter->type() != FilterType::MESHCHAR) {
     set_errmsg("Tried to set mesh on a non-mesh-based filter.");
@@ -121,7 +125,7 @@ extern "C" int openmc_adjointmesh_filter_set_translation(
   }
 
   // Get a pointer to the filter and downcast
-  auto mesh_filter = dynamic_cast<AdjointMeshFilter*>(filter.get());
+  auto mesh_filter = dynamic_cast<MeshCharFilter*>(filter.get());
 
   // Set the translation
   mesh_filter->set_translation(translation);

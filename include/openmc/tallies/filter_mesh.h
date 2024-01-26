@@ -61,52 +61,5 @@ protected:
 };
 
 
-class MeshCharFilter : public Filter {
-public:
-  //----------------------------------------------------------------------------
-  // Constructors, destructors
-
-  ~MeshCharFilter() = default;
-
-  //----------------------------------------------------------------------------
-  // Methods
-
-  std::string type_str() const override { return "meshchar"; }
-  FilterType type() const override { return FilterType::MESHCHAR; }
-
-  void from_xml(pugi::xml_node node) override;
-
-  void get_all_bins(const Particle& p, TallyEstimator estimator,
-    FilterMatch& match) const override;
-
-  void to_statepoint(hid_t filter_group) const override;
-
-  std::string text_label(int bin) const override;
-
-  //----------------------------------------------------------------------------
-  // Accessors
-
-  virtual int32_t mesh() const { return mesh_; }
-
-  virtual void set_mesh(int32_t mesh);
-
-  virtual void set_translation(const Position& translation);
-
-  virtual void set_translation(const double translation[3]);
-
-  virtual const Position& translation() const { return translation_; }
-
-  virtual bool translated() const { return translated_; }
-
-protected:
-  //----------------------------------------------------------------------------
-  // Data members
-
-  int32_t mesh_;
-  bool translated_ {false};
-  Position translation_ {0.0, 0.0, 0.0};
-};
-
-
 } // namespace openmc
 #endif // OPENMC_TALLIES_FILTER_MESH_H

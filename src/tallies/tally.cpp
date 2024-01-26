@@ -26,6 +26,8 @@
 #include "openmc/tallies/filter_energy.h"
 #include "openmc/tallies/filter_legendre.h"
 #include "openmc/tallies/filter_mesh.h"
+#include "openmc/tallies/filter_adjointmesh.h"
+#include "openmc/tallies/filter_meshchar.h"
 #include "openmc/tallies/filter_meshsurface.h"
 #include "openmc/tallies/filter_particle.h"
 #include "openmc/tallies/filter_sph_harm.h"
