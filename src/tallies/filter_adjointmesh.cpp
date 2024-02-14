@@ -8,13 +8,16 @@ namespace openmc {
 void AdjointMeshFilter::get_all_bins(
   const Particle& p, TallyEstimator estimator, FilterMatch& match) const
 {
-  for (auto r: p.r_history()){
-      // apply translation if present
-      if (translated_) r -= translation();
-      auto bin = model::meshes[mesh_]->get_bin(r);
-      if (bin >= 0) {
-        match.bins_.push_back(bin);
-        match.weights_.push_back(1.0);
+    if (p.r_history().begin() != p.r_history().end()) {
+        for (auto it = std::next(p.r_history().begin()); it!=p.r_history().end(); ++it){
+          // apply translation if present
+          Position r = *it;
+          if (translated_) r = r - translation();
+          auto bin = model::meshes[mesh_]->get_bin(r);
+          if (bin >= 0) {
+            match.bins_.push_back(bin);
+            match.weights_.push_back(1.0);
+          }
       }
   }
 }
