@@ -37,7 +37,7 @@ option(OPENMC_ENABLE_COVERAGE "Compile with coverage analysis flags"            
 option(OPENMC_USE_DAGMC       "Enable support for DAGMC (CAD) geometry"              OFF)
 option(OPENMC_USE_LIBMESH     "Enable support for libMesh unstructured mesh tallies" OFF)
 option(OPENMC_USE_MPI         "Enable MPI"                                           OFF)
-option(OPENMC_USE_MCPL        "Enable MCPL"                                          OFF)
+option(OPENMC_USE_MCPL        "Enable MCPL"                                          ON)
 option(OPENMC_USE_NCRYSTAL    "Enable support for NCrystal scattering"               OFF)
 
 # Warnings for deprecated options
@@ -564,6 +564,9 @@ target_link_libraries(openmc libopenmc)
 target_compile_features(openmc PUBLIC cxx_std_14)
 target_compile_features(libopenmc PUBLIC cxx_std_14)
 set_target_properties(openmc libopenmc PROPERTIES CXX_EXTENSIONS OFF)
+
+include_directories(/home/agusgimenez/anaconda3/envs/openmc_develop/include)
+target_link_libraries(libopenmc /home/agusgimenez/anaconda3/envs/openmc_develop/lib/libkdsource.so)
 
 #===============================================================================
 # Python package
