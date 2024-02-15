@@ -14,6 +14,13 @@
 #include "openmc/particle.h"
 #include "openmc/vector.h"
 
+#ifdef OPENMC_MCPL
+#include <mcpl.h>
+extern "C" {
+#include "kdsource.h"
+}
+#endif
+
 namespace openmc {
 
 //==============================================================================
@@ -112,6 +119,8 @@ public:
     const std::string& path); //!< Load source sites from file
 private:
   vector<SourceSite> sites_; //!< Source sites from a file
+  KDSource* kdsource;
+  // extern "C" int64_t n_particles_resampled;
 };
 
 //==============================================================================
