@@ -106,12 +106,17 @@ public:
   explicit FileSource(pugi::xml_node node);
   explicit FileSource(const std::string& path);
 
+  // Properties
+  double strength() const override { return strength_; }
+
   // Methods
   SourceSite sample(uint64_t* seed) const override;
   void load_sites_from_file(
     const std::string& path); //!< Load source sites from file
 private:
-  vector<SourceSite> sites_; //!< Source sites from a file
+  vector<SourceSite> sites_;  //!< Source sites from a file
+  bool seq_ {false};          //!< Flag to to sample source sequentially
+  double strength_ {1.0};     //!< Source strength
 };
 
 //==============================================================================
