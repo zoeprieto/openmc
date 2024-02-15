@@ -730,6 +730,58 @@ class FileSource(SourceBase):
 
         return source
 
+class KernelDensitySource(SourceBase):
+    """A source based on particles stored in a file
+
+    Parameters
+    ----------
+    path : str or pathlib.Path
+        Path to the source file from which sites should be sampled
+    strength : float
+        Strength of the source (default is 1.0)
+
+    Attributes
+    ----------
+    path : Pathlike
+        Source file from which sites should be sampled
+    strength : float
+        Strength of the source
+    type : str
+        Indicator of source type: 'file'
+
+    """
+    def __init__(self, path: Optional[PathLike] = None, strength=1.0) -> None:
+        super().__init__(strength=strength)
+
+        self._path = None
+
+        if path is not None:
+            self.path = path
+
+    @property
+    def type(self) -> str:
+        return "KDSource"
+
+    @property
+    def path(self) -> PathLike:
+        return self._path
+
+    @path.setter
+    def path(self, p: PathLike):
+        cv.check_type('source file', p, str)
+        self._path = p
+
+    def populate_xml_element(self, element):
+        """Add necessary file source information to an XML element
+
+        Returns
+        -------
+        element : lxml.etree._Element
+            XML element containing source data
+
+        """
+        if self.path is not None:
+            element.set("KDSource", self.path)
 
 class ParticleType(IntEnum):
     """
