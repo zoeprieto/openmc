@@ -138,6 +138,7 @@ public:
     const std::string& path); //!< Load source sites from file
 private:
   KDSource* kdsource;
+  bool resample;
   // extern "C" int64_t n_particles_resampled;
 };
 

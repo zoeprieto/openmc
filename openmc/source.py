@@ -750,13 +750,16 @@ class KernelDensitySource(SourceBase):
         Indicator of source type: 'file'
 
     """
-    def __init__(self, path: Optional[PathLike] = None, strength=1.0) -> None:
+    def __init__(self, path: Optional[PathLike] = None, resample = True, strength=1.0) -> None:
         super().__init__(strength=strength)
 
         self._path = None
 
         if path is not None:
             self.path = path
+
+        self.resample = resample
+
 
     @property
     def type(self) -> str:
@@ -766,10 +769,19 @@ class KernelDensitySource(SourceBase):
     def path(self) -> PathLike:
         return self._path
 
+    @property
+    def resample(self) -> bool:
+        return self._resample
+
     @path.setter
     def path(self, p: PathLike):
         cv.check_type('source file', p, str)
         self._path = p
+
+    @resample.setter
+    def resample(self,r: resample):
+        cv.check_type('resample',r ,bool)
+        self._resample = r
 
     def populate_xml_element(self, element):
         """Add necessary file source information to an XML element
@@ -782,6 +794,7 @@ class KernelDensitySource(SourceBase):
         """
         if self.path is not None:
             element.set("KDSource", self.path)
+            element.set("resample",str(self.resample))
 
 class ParticleType(IntEnum):
     """
