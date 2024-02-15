@@ -414,6 +414,16 @@ FileSource::FileSource(pugi::xml_node node) : Source(node)
   } else {
     this->load_sites_from_file(path);
   }
+  seq_ = get_node_value_bool(node, "sequential");
+  if (seq_) {
+    settings::n_particles = sites_.size();
+    write_message("Sequential source mode, number of particles set to {}", settings::n_particles);
+  }
+  // Check for source strength
+  if (check_for_node(node, "strength")) {
+    strength_ = std::stod(get_node_value(node, "strength"));
+  }
+
 }
 
 FileSource::FileSource(const std::string& path)
@@ -451,8 +461,13 @@ void FileSource::load_sites_from_file(const std::string& path)
 
 SourceSite FileSource::sample(uint64_t* seed) const
 {
-  // Sample a particle randomly from list
-  size_t i_site = sites_.size() * prn(seed);
+  size_t i_site;
+  if (seq_){
+    #pragma omp atomic capture
+    i_site = simulation::i_seq++;
+  } else {
+    i_site = sites_.size() * prn(seed);
+  }
   return sites_[i_site];
 }
 

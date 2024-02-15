@@ -310,6 +310,7 @@ int restart_batch;
 bool satisfy_triggers {false};
 int total_gen {0};
 double total_weight;
+int i_seq {0};
 int64_t work_per_rank;
 
 const RegularMesh* entropy_mesh {nullptr};
@@ -358,6 +359,8 @@ void initialize_batch()
 
   // Reset total starting particle weight used for normalizing tallies
   simulation::total_weight = 0.0;
+  // Reset counter for sequential reading of source
+  simulation::i_seq = 0;
 
   // Determine if this batch is the first inactive or active batch.
   bool first_inactive = false;

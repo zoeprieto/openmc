@@ -818,10 +818,8 @@ class FileSource(SourceBase):
         Strength of the source
     type : str
         Indicator of source type: 'file'
-    constraints : dict
-        Constraints on sampled source particles. Valid keys include
-        'domain_type', 'domain_ids', 'time_bounds', 'energy_bounds',
-        'fissionable', and 'rejection_strategy'.
+    sequential: bool
+        Indicate whether file should be read sequentially or sampled
 
     """
 
@@ -833,6 +831,8 @@ class FileSource(SourceBase):
     ):
         super().__init__(strength=strength, constraints=constraints)
         self._path = None
+        self._sequential = None
+
         if path is not None:
             self.path = path
 
@@ -849,6 +849,15 @@ class FileSource(SourceBase):
         cv.check_type('source file', p, str)
         self._path = p
 
+    @property
+    def sequential(self) -> bool:
+        return self._sequential
+
+    @sequential.setter
+    def sequential(self, sequential: bool):
+        cv.check_type('sequential', sequential, bool)
+        self._sequential = sequential
+
     def populate_xml_element(self, element):
         """Add necessary file source information to an XML element
 
@@ -860,6 +869,9 @@ class FileSource(SourceBase):
         """
         if self.path is not None:
             element.set("file", self.path)
+
+        if self.sequential is not None:
+            element.set("sequential", str(self.sequential).lower())
 
     @classmethod
     def from_xml_element(cls, elem: ET.Element) -> openmc.FileSource:
@@ -883,9 +895,13 @@ class FileSource(SourceBase):
         kwargs['path'] = get_text(elem, 'file')
         strength = get_text(elem, 'strength')
         if strength is not None:
-            kwargs['strength'] = float(strength)
+            source.strength = float(strength)
 
-        return cls(**kwargs)
+        text = get_text(elem, 'sequential')
+        if text is not None:
+            self.sequential = text in ('true', '1')
+
+        return source
 
 
 class ParticleType(IntEnum):
