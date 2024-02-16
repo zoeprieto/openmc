@@ -33,7 +33,7 @@ _CURRENT_NAMES = (
     'z-min out', 'z-min in', 'z-max out', 'z-max in'
 )
 
-_PARTICLES = {'neutron', 'photon', 'electron', 'positron'}
+_PARTICLES = {'neutron', 'photon', 'electron', 'positron', 'neutron_contributon'}
 
 
 class FilterMeta(ABCMeta):

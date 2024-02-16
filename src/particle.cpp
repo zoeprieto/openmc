@@ -47,6 +47,7 @@ double Particle::speed() const
   // Determine mass in eV/c^2
   double mass;
   switch (this->type()) {
+  case ParticleType::neutron_contributon:
   case ParticleType::neutron:
     mass = MASS_NEUTRON_EV;
     break;
@@ -856,6 +857,9 @@ std::string particle_type_to_str(ParticleType type)
   case ParticleType::positron:
     return "positron";
   }
+  case ParticleType::neutron_contributon:
+    return "neutron_contributon";
+  }
   UNREACHABLE();
 }
 
@@ -869,6 +873,8 @@ ParticleType str_to_particle_type(std::string str)
     return ParticleType::electron;
   } else if (str == "positron") {
     return ParticleType::positron;
+  } else if (str == "neutron_contributon") {
+    return ParticleType::neutron_contributon;
   } else {
     throw std::invalid_argument {fmt::format("Invalid particle name: {}", str)};
   }

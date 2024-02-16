@@ -45,6 +45,7 @@ void collision(Particle& p)
 
   // Sample reaction for the material the particle is in
   switch (p.type()) {
+  case ParticleType::neutron_contributon:
   case ParticleType::neutron:
     sample_neutron_reaction(p);
     break;
@@ -470,6 +471,76 @@ void sample_positron_reaction(Particle& p)
   p.E() = 0.0;
   p.wgt() = 0.0;
   p.event() = TallyEvent::ABSORB;
+}
+
+void sample_contributon_reaction(Particle& p)
+{
+  // Sample a nuclide within the material
+  int i_nuclide = sample_nuclide(p);
+
+  // Save which nuclide particle had collision with
+  p.event_nuclide() = i_nuclide;
+
+  // Create fission bank sites. Note that while a fission reaction is sampled,
+  // it never actually "happens", i.e. the weight of the particle does not
+  // change when sampling fission sites. The following block handles all
+  // absorption (including fission)
+
+  const auto& nuc {data::nuclides[i_nuclide]};
+
+  if (nuc->fissionable_ && p.neutron_xs(i_nuclide).fission > 0.0) {
+    auto& rx = sample_fission(i_nuclide, p);
+    if (settings::run_mode == RunMode::EIGENVALUE) { 
+      create_fission_sites(p, i_nuclide, rx);
+    } else if (settings::run_mode == RunMode::FIXED_SOURCE &&
+               settings::create_fission_neutrons) {
+      create_fission_sites(p, i_nuclide, rx);
+
+      // Make sure particle population doesn't grow out of control for
+      // subcritical multiplication problems.
+      if (p.secondary_bank().size() >= 10000) {
+        fatal_error(
+          "The secondary particle bank appears to be growing without "
+          "bound. You are likely running a subcritical multiplication problem "
+          "with k-effective close to or greater than one.");
+      }
+    }
+  }
+
+  // Create secondary photons
+  if (settings::photon_transport) {
+    sample_secondary_photons(p, i_nuclide);
+  }
+
+  // If survival biasing is being used, the following subroutine adjusts the
+  // weight of the particle. Otherwise, it checks to see if absorption occurs
+
+  if (p.neutron_xs(i_nuclide).absorption > 0.0) {
+    absorption(p, i_nuclide);
+  }
+  if (!p.alive())
+    return;
+
+  // Sample a scattering reaction and determine the secondary energy of the
+  // exiting neutron
+  const auto& ncrystal_mat = model::materials[p.material()]->ncrystal_mat();
+  if (ncrystal_mat && p.E() < NCRYSTAL_MAX_ENERGY) {
+    ncrystal_mat.scatter(p);
+  } else {
+    scatter(p, i_nuclide);
+  }
+
+  // Advance URR seed stream 'N' times after energy changes
+  if (p.E() != p.E_last()) {
+    advance_prn_seed(data::nuclides.size(), &p.seeds(STREAM_URR_PTABLE));
+  }
+
+  // Play russian roulette if survival biasing is turned on
+  if (settings::survival_biasing) {
+    if (p.wgt() < settings::weight_cutoff) {
+      russian_roulette(p, settings::weight_survive);
+    }
+  }
 }
 
 int sample_nuclide(Particle& p)
