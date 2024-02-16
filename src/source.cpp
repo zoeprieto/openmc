@@ -414,10 +414,12 @@ FileSource::FileSource(pugi::xml_node node) : Source(node)
   } else {
     this->load_sites_from_file(path);
   }
-  seq_ = get_node_value_bool(node, "sequential");
-  if (seq_) {
-    settings::n_particles = sites_.size();
-    write_message("Sequential source mode, number of particles set to {}", settings::n_particles);
+  if (check_for_node(node, "sequential")) {
+    seq_ = get_node_value_bool(node, "sequential");
+    if (seq_) {
+        settings::n_particles = sites_.size();
+        write_message("Sequential source mode, number of particles set to {}", settings::n_particles);
+    }
   }
   // Check for source strength
   if (check_for_node(node, "strength")) {
