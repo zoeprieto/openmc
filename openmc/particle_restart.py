@@ -29,7 +29,7 @@ class Particle:
     id : long
         Identifier of the particle
     type : int
-        Particle type (1 = neutron, 2 = photon, 3 = electron, 4 = positron)
+        Particle type (1 = neutron, 2 = photon, 3 = electron, 4 = positron, 5 = neutron_contributon)
     weight : float
         Weight of the particle
     energy : float

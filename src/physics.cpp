@@ -74,7 +74,7 @@ void collision(Particle& p)
     std::string msg;
     if (p.event() == TallyEvent::KILL) {
       msg = fmt::format("    Killed. Energy = {} eV.", p.E());
-    } else if (p.type() == ParticleType::neutron) {
+    } else if (p.type() == ParticleType::neutron  || p.type() == ParticleType::neutron_contributon) {
       msg = fmt::format("    {} with {}. Energy = {} eV.",
         reaction_name(p.event_mt()), data::nuclides[p.event_nuclide()]->name_,
         p.E());
@@ -146,6 +146,15 @@ void sample_neutron_reaction(Particle& p)
     scatter(p, i_nuclide);
   }
 
+  // Create neutron contributons
+  if (p.type() != ParticleType::neutron_contributon) {
+    p.create_secondary(p.wgt(), p.u(), p.E(), ParticleType::neutron_contributon);
+    // Display message if high verbosity or trace is on
+    if (settings::verbosity >= 9 || p.trace()) {
+      write_message("Creating contributon in {}", p.r());
+    }
+  }
+  
   // Advance URR seed stream 'N' times after energy changes
   if (p.E() != p.E_last()) {
     advance_prn_seed(data::nuclides.size(), &p.seeds(STREAM_URR_PTABLE));

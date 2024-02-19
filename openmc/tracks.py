@@ -92,7 +92,7 @@ class Track(Sequence):
 
         Parameters
         ----------
-        particle : {'neutron', 'photon', 'electron', 'positron'}
+        particle : {'neutron', 'photon', 'electron', 'positron', 'neutron_contributon'}
             Matching particle type
         state_filter : function
             Function that takes a state (structured datatype) and returns a bool
@@ -226,7 +226,7 @@ class Tracks(list):
 
         Parameters
         ----------
-        particle : {'neutron', 'photon', 'electron', 'positron'}
+        particle : {'neutron', 'photon', 'electron', 'positron', 'neutron_contributon'}
             Matching particle type
         state_filter : function
             Function that takes a state (structured datatype) and returns a bool

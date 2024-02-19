@@ -168,6 +168,9 @@ void print_particle(Particle& p)
   case ParticleType::positron:
     fmt::print("Positron ");
     break;
+  case ParticleType::neutron_contributon:
+    fmt::print("Neutron_Contributon ");
+    break;
   default:
     fmt::print("Unknown Particle ");
   }

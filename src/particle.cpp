@@ -115,6 +115,7 @@ void Particle::from_source(const SourceSite* src)
   n_collision() = 0;
   fission() = false;
   zero_flux_derivs();
+  r_history() = std::vector<Position>{};
 
   // Copy attributes from source bank site
   type() = src->particle;
@@ -856,7 +857,6 @@ std::string particle_type_to_str(ParticleType type)
     return "electron";
   case ParticleType::positron:
     return "positron";
-  }
   case ParticleType::neutron_contributon:
     return "neutron_contributon";
   }
