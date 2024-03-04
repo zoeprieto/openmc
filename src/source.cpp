@@ -342,10 +342,24 @@ SourceSite FileSource::sample(uint64_t* seed) const
 KernelDensitySource::KernelDensitySource(pugi::xml_node node)
 {
   auto path = get_node_value(node, "KDSource", false, true);
-  resample = get_node_value_bool(node, "resample");
+  perturb = get_node_value_bool(node, "perturb");
+  long long n_particle_original = get_node_value_longlong(node, "N_particle_original");
+  if ((openmc::settings::n_particles % n_particle_original) != 0)
+    fatal_error("Number of particles resampled must be a multiple of original particle list size.");
   if (ends_with(path, ".xml")) {
     const char* filename = path.data();
-    kdsource = KDS_open(filename);
+    kdsource.reserve(num_threads());
+    std::cout<< "Num_thread:" << num_threads() << std::endl;
+    std::cout<< "Num_particles_o:" << n_particle_original << std::endl;
+    std::cout<< "Num_particles_r:" << openmc::settings::n_particles << std::endl;
+    for (int i = 0 ; i < num_threads() ; i++)
+    {
+      kdsource[i] = KDS_open(filename);
+      // uint64_t offset = i * n_particle_original/num_threads() + (openmc::settings::n_particles/num_threads())%n_particle_original;
+      uint64_t offset = (i * openmc::settings::n_particles/num_threads())%n_particle_original;
+      std::cout << offset << std::endl;
+      PList_offset(kdsource[i]->plist, offset);
+    }
     // n_particles_resampled = 0;
     // if(settings::n_particles % kdsource->plist->npts)
     // {
@@ -363,9 +377,9 @@ SourceSite KernelDensitySource::sample(uint64_t* seed) const
 {
   mcpl_particle_t particle;
   const mcpl_particle_t* ptr_particle = &particle;
-  #pragma omp critical
+  // #pragma omp critical
   {
-    KDS_sample2(kdsource, &particle, resample, -1, NULL, 1);
+    KDS_sample2(kdsource[thread_num()], &particle, perturb, -1, NULL, 1);
   }
   // std::cout<< omp_get_thread_num() << std::endl;
   return mcpl_particle_to_site(ptr_particle);
