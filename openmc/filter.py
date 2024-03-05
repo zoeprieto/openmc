@@ -21,7 +21,7 @@ from ._xml import get_text
 
 _FILTER_TYPES = (
     'universe', 'material', 'cell', 'cellborn', 'surface', 'mesh', 'meshchar', 'adjointmesh', 
-    'adjoinsourcetmesh', 'energy', 'energyout', 'mu', 'polar', 'azimuthal', 'distribcell', 'delayedgroup',
+    'adjointsourcemesh', 'energy', 'energyout', 'mu', 'polar', 'azimuthal', 'distribcell', 'delayedgroup',
     'energyfunction', 'cellfrom', 'materialfrom', 'legendre', 'spatiallegendre',
     'sphericalharmonics', 'zernike', 'zernikeradial', 'particle', 'cellinstance',
     'collision', 'time'

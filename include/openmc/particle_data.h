@@ -406,6 +406,7 @@ private:
   double time_ {0.0};
   double time_last_ {0.0};
   double wgt_last_ {1.0};
+  double wgt_first_ {1.0};
   vector<Position> r_history_; //!< position history
   
   bool fission_ {false};
@@ -506,6 +507,8 @@ public:
   double wgt() const { return wgt_; }
   double& wgt_last() { return wgt_last_; }
   const double& wgt_last() const { return wgt_last_; }
+  double& wgt_first() { return wgt_first_; }
+  const double& wgt_first() const { return wgt_first_; }
   bool alive() const { return wgt_ != 0.0; }
   vector<Position>& r_history() { return r_history_; }
   const vector<Position>& r_history() const { return r_history_; }

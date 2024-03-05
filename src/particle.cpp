@@ -121,6 +121,7 @@ void Particle::from_source(const SourceSite* src)
   type() = src->particle;
   wgt() = src->wgt;
   wgt_last() = src->wgt;
+  wgt_first() = src->wgt;
   r() = src->r;
   u() = src->u;
   r_source() = r();

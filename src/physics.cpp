@@ -131,6 +131,15 @@ void sample_neutron_reaction(Particle& p)
   // If survival biasing is being used, the following subroutine adjusts the
   // weight of the particle. Otherwise, it checks to see if absorption occurs
 
+  // Create neutron contributons
+  if (p.type() != ParticleType::neutron_contributon) {
+    p.create_secondary(p.wgt(), p.u(), p.E(), ParticleType::neutron_contributon);
+    // Display message if high verbosity or trace is on
+    if (settings::verbosity >= 9 || p.trace()) {
+      write_message("Creating contributon in {}", p.r());
+    }
+  }
+
   if (p.neutron_xs(i_nuclide).absorption > 0.0) {
     absorption(p, i_nuclide);
   }
@@ -146,14 +155,7 @@ void sample_neutron_reaction(Particle& p)
     scatter(p, i_nuclide);
   }
 
-  // Create neutron contributons
-  if (p.type() != ParticleType::neutron_contributon) {
-    p.create_secondary(p.wgt(), p.u(), p.E(), ParticleType::neutron_contributon);
-    // Display message if high verbosity or trace is on
-    if (settings::verbosity >= 9 || p.trace()) {
-      write_message("Creating contributon in {}", p.r());
-    }
-  }
+
   
   // Advance URR seed stream 'N' times after energy changes
   if (p.E() != p.E_last()) {
