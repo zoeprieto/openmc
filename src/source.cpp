@@ -346,28 +346,30 @@ KernelDensitySource::KernelDensitySource(pugi::xml_node node)
   if (ends_with(path, ".xml")) {
     const char* filename = path.data();
     kdsource = KDS_open(filename);
-    // n_particles_resampled = 0;
-    // if(settings::n_particles % kdsource->plist->npts)
-    // {
-    //   std::cout << settings::n_particles << std::endl;
-    //   settings::n_particles -= settings::n_particles % kdsource->plist->npts;
-    //   std::cout << settings::n_particles << std::endl;
-    // }
+    if(uint64_t diff_nparticles = settings::n_particles%kdsource->plist->npts)
+      fatal_error("ERROR: the number of particles sampled must be a multiple of " + std::to_string(kdsource->plist->npts) + " (number of particles in the original MCPL file).");
   } else {
     fatal_error("Specified starting source file not a source file type compatible with KDSource.");
   }
 }
 
+KernelDensitySource::~KernelDensitySource()
+{
+  KDS_destroy(kdsource);
+}
 
 SourceSite KernelDensitySource::sample(uint64_t* seed) const
 {
   mcpl_particle_t particle;
   const mcpl_particle_t* ptr_particle = &particle;
+
   #pragma omp critical
   {
-    KDS_sample2(kdsource, &particle, resample, -1, NULL, 1);
+    kdsource->geom->seed = seed;
+    KDS_sample2(this->kdsource, &particle, this->resample, -1, NULL, 1);
   }
   // std::cout<< omp_get_thread_num() << std::endl;
+  // std::cout<< prn(seed) << std::endl;
   return mcpl_particle_to_site(ptr_particle);
 }
 

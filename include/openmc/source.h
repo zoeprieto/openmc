@@ -131,7 +131,7 @@ public:
   // Constructors
   explicit KernelDensitySource(pugi::xml_node node);
   explicit KernelDensitySource(const std::string& path);
-
+  ~KernelDensitySource();
   // Methods
   SourceSite sample(uint64_t* seed) const override;
   void load_sites_from_file(
