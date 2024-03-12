@@ -1597,8 +1597,9 @@ class Settings:
         if elem is not None:
             self.cutoff = {}
             for key in ('energy_neutron', 'energy_photon', 'energy_electron',
-                        'energy_positron', 'weight', 'weight_avg', 'time_neutron',
-                        'time_photon', 'time_electron', 'time_positron'):
+                        'energy_positron', 'energy_neutron_contributon', 'weight', 
+                        'weight_avg', 'time_neutron', 'time_photon', 'time_electron', 
+                        'time_positron', 'time_neutron_contributon'):
                 value = get_text(elem, key)
                 if value is not None:
                     self.cutoff[key] = float(value)
