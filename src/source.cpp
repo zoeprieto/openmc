@@ -374,19 +374,17 @@ KernelDensitySource::KernelDensitySource(pugi::xml_node node)
   }
 }
 
+KernelDensitySource::~KernelDensitySource(){
+  for (int i = 0; i < num_threads(); i++)
+    KDS_destroy(kdsource[i]);
+}
 
 SourceSite KernelDensitySource::sample(uint64_t* seed) const
 {
   mcpl_particle_t particle;
   const mcpl_particle_t* ptr_particle = &particle;
-  // #pragma omp critical
-  {
-    kdsource[thread_num()]->geom->seed = seed;
-    KDS_sample2(kdsource[thread_num()], &particle, perturb, -1, NULL, 1);
-    std::cout<< thread_num() << '\t' << particle.position[0] << '\t' << *seed << std::endl;
-    
-  }
-  // std::cout<< omp_get_thread_num() << std::endl;
+  kdsource[thread_num()]->geom->seed = seed;
+  KDS_sample2(kdsource[thread_num()], &particle, perturb, -1, NULL, 1);    
   return mcpl_particle_to_site(ptr_particle);
 }
 

@@ -130,6 +130,7 @@ class KernelDensitySource : public Source {
 public:
   // Constructors
   explicit KernelDensitySource(pugi::xml_node node);
+  ~KernelDensitySource();
   // explicit KernelDensitySource(const std::string& path);
 
   // Methods
