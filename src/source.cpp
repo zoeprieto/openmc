@@ -343,30 +343,32 @@ KernelDensitySource::KernelDensitySource(pugi::xml_node node)
 {
   auto path = get_node_value(node, "KDSource", false, true);
   perturb = get_node_value_bool(node, "perturb");
-  long long n_particle_original = get_node_value_longlong(node, "N_particle_original");
-  if ((openmc::settings::n_particles % n_particle_original) != 0)
-    fatal_error("Number of particles resampled must be a multiple of original particle list size.");
   if (ends_with(path, ".xml")) {
     const char* filename = path.data();
+
+    // Reserve necesary memory
     kdsource.reserve(num_threads());
-    std::cout<< "Num_thread:" << num_threads() << std::endl;
-    std::cout<< "Num_particles_o:" << n_particle_original << std::endl;
-    std::cout<< "Num_particles_r:" << openmc::settings::n_particles << std::endl;
-    for (int i = 0 ; i < num_threads() ; i++)
+    threads_offset.reserve(num_threads());
+
+    // First inicialization of necesary variables
+    kdsource[0] = KDS_open(filename);
+    mcpl_nparticles = kdsource[0]->plist->npts;
+    threads_offset[0] = 0;
+
+    // Declaration of necesary variables
+    uint64_t part_thr = openmc::settings::n_particles/num_threads();
+    uint64_t rest_part_thr = openmc::settings::n_particles%num_threads();
+    for (int i = 1 ; i < num_threads() ; i++)
     {
       kdsource[i] = KDS_open(filename);
-      // uint64_t offset = i * n_particle_original/num_threads() + (openmc::settings::n_particles/num_threads())%n_particle_original;
-      uint64_t offset = (i * openmc::settings::n_particles/num_threads())%n_particle_original;
-      std::cout << offset << std::endl;
-      PList_offset(kdsource[i]->plist, offset);
+      if (i < rest_part_thr)
+      {
+        threads_offset[i] = i * (part_thr + 1) - 1;
+      } else {
+        threads_offset[i] = i * part_thr + rest_part_thr -1;
+      }
+      PList_offset(kdsource[i]->plist, threads_offset[i]%mcpl_nparticles);
     }
-    // n_particles_resampled = 0;
-    // if(settings::n_particles % kdsource->plist->npts)
-    // {
-    //   std::cout << settings::n_particles << std::endl;
-    //   settings::n_particles -= settings::n_particles % kdsource->plist->npts;
-    //   std::cout << settings::n_particles << std::endl;
-    // }
   } else {
     fatal_error("Specified starting source file not a source file type compatible with KDSource.");
   }
@@ -379,7 +381,10 @@ SourceSite KernelDensitySource::sample(uint64_t* seed) const
   const mcpl_particle_t* ptr_particle = &particle;
   // #pragma omp critical
   {
+    kdsource[thread_num()]->geom->seed = seed;
     KDS_sample2(kdsource[thread_num()], &particle, perturb, -1, NULL, 1);
+    std::cout<< thread_num() << '\t' << particle.position[0] << '\t' << *seed << std::endl;
+    
   }
   // std::cout<< omp_get_thread_num() << std::endl;
   return mcpl_particle_to_site(ptr_particle);

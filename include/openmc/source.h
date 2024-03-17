@@ -138,7 +138,10 @@ public:
     const std::string& path); //!< Load source sites from file
 private:
   vector<KDSource*> kdsource;
+  vector<uint64_t> threads_offset;
+  uint64_t mcpl_nparticles;
   bool perturb;
+  
   // extern "C" int64_t n_particles_resampled;
 };
 

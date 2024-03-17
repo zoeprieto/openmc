@@ -758,7 +758,8 @@ class KernelDensitySource(SourceBase):
             self.path = path
 
         self.perturb = perturb
-        self.N_particle_original = N_particle_original
+        if N_particle_original is not None:
+            self.N_particle_original = N_particle_original
 
     @property
     def type(self) -> str:
@@ -804,7 +805,8 @@ class KernelDensitySource(SourceBase):
         if self.path is not None:
             element.set("KDSource", self.path)
             element.set("perturb",str(self.perturb))
-            element.set("N_particle_original", self.N_particle_original)
+        # if self.N_particle_original is not None:
+            # element.set("N_particle_original", self.N_particle_original)
 
 class ParticleType(IntEnum):
     """
