@@ -385,6 +385,7 @@ SourceSite KernelDensitySource::sample(uint64_t* seed) const
   const mcpl_particle_t* ptr_particle = &particle;
   #pragma omp critical // has to be "critical" because KDSource's random number generator is not implemented in multi-threading
   {
+    prn(seed);
     kdsource[thread_num()]->geom->seed = seed;
     KDS_sample2(kdsource[thread_num()], &particle, perturb, -1, NULL, 1);    
   }
