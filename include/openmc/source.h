@@ -136,7 +136,7 @@ public:
   SourceSite sample(uint64_t* seed) const override;
   void load_KDSource_from_file(
     const std::string& path); //!< Load source sites from file
-  void set_seed_to_pertub(uint64_t* seed, size_t i);
+  void set_seed_to_pertub(uint64_t* seed, size_t i) const;
 
 private:
   vector<KDSource*> kdsource;

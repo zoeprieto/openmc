@@ -342,6 +342,26 @@ KernelDensitySource::KernelDensitySource(pugi::xml_node node)
 {
   auto path = get_node_value(node, "KDSource", false, true);
   perturb = get_node_value_bool(node, "perturb");
+  this->load_KDSource_from_file(path);
+}
+
+KernelDensitySource::KernelDensitySource(const std::string& path)
+{
+  perturb = true;
+  this->load_KDSource_from_file(path);
+}
+
+KernelDensitySource::~KernelDensitySource(){
+  for (int i = 0; i < num_threads(); i++)
+    KDS_destroy(kdsource[i]);
+}
+void KernelDensitySource::set_seed_to_pertub(uint64_t* seed, size_t i) const
+{
+  kdsource[i]->geom->seed = seed;
+}
+
+void KernelDensitySource::load_KDSource_from_file(const std::string& path)
+{
   if (ends_with(path, ".xml")) {
     const char* filename = path.data();
 
@@ -371,26 +391,18 @@ KernelDensitySource::KernelDensitySource(pugi::xml_node node)
   } else {
     fatal_error("Specified starting source file not a source file type "
                 "compatible with KDSource.");
-  }
-}
-
-KernelDensitySource::~KernelDensitySource(){
-  for (int i = 0; i < num_threads(); i++)
-    KDS_destroy(kdsource[i]);
-}
-KernelDensitySource::set_seed_to_pertub(uint64_t* seed, size_t i)
-{
-  kdsource->geom->seed = seed;
+  }  
 }
 
 SourceSite KernelDensitySource::sample(uint64_t* seed) const
 {
   mcpl_particle_t particle;
   const mcpl_particle_t* ptr_particle = &particle;
-  #pragma omp critical // has to be "critical" because KDSource's random number generator is not implemented in multi-threading
+  #pragma omp critical // it has to be "critical" because KDSource's random number generator is not implemented in multi-threading
   {
     prn(seed);
-    kdsource[thread_num()]->geom->seed = seed;
+    if (perturb)
+      this->set_seed_to_pertub(seed,thread_num());
     KDS_sample2(kdsource[thread_num()], &particle, perturb, -1, NULL, 1);    
   }
   return mcpl_particle_to_site(ptr_particle);
