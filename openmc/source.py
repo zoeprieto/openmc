@@ -750,16 +750,16 @@ class KernelDensitySource(SourceBase):
         Indicator of source type: 'file'
 
     """
-    def __init__(self, path: Optional[PathLike] = None, resample = True, strength=1.0) -> None:
+    def __init__(self, path: Optional[PathLike] = None, perturb = True, N_particle_original=None , strength=1.0) -> None:
         super().__init__(strength=strength)
 
         self._path = None
-
         if path is not None:
             self.path = path
 
-        self.resample = resample
-
+        self.perturb = perturb
+        if N_particle_original is not None:
+            self.N_particle_original = N_particle_original
 
     @property
     def type(self) -> str:
@@ -770,18 +770,28 @@ class KernelDensitySource(SourceBase):
         return self._path
 
     @property
-    def resample(self) -> bool:
-        return self._resample
+    def perturb(self) -> bool:
+        return self._perturb
+
+    @property
+    def N_particle_original(self) -> str:
+        return self._N_particle_original
 
     @path.setter
     def path(self, p: PathLike):
         cv.check_type('source file', p, str)
         self._path = p
 
-    @resample.setter
-    def resample(self,r: resample):
-        cv.check_type('resample',r ,bool)
-        self._resample = r
+    @perturb.setter
+    def perturb(self,r: perturb):
+        cv.check_type('perturb',r ,bool)
+        self._perturb = r
+
+    @N_particle_original.setter
+    def N_particle_original(self, n: N_particle_original):
+        cv.check_type('original particle number', n, str)
+        self._N_particle_original = n
+
 
     def populate_xml_element(self, element):
         """Add necessary file source information to an XML element
@@ -794,7 +804,9 @@ class KernelDensitySource(SourceBase):
         """
         if self.path is not None:
             element.set("KDSource", self.path)
-            element.set("resample",str(self.resample))
+            element.set("perturb",str(self.perturb))
+        # if self.N_particle_original is not None:
+            # element.set("N_particle_original", self.N_particle_original)
 
 class ParticleType(IntEnum):
     """

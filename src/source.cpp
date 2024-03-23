@@ -341,38 +341,43 @@ SourceSite FileSource::sample(uint64_t* seed) const
 KernelDensitySource::KernelDensitySource(pugi::xml_node node)
 {
   auto path = get_node_value(node, "KDSource", false, true);
-  resample = get_node_value_bool(node, "resample");
-  this->load_KDSource_from_file(path);
-}
-
-KernelDensitySource::KernelDensitySource(const std::string& path)
-{
-  resample = true;
-  this->load_KDSource_from_file(path);
-}
-
-KernelDensitySource::~KernelDensitySource()
-{
-  KDS_destroy(kdsource);
-}
-
-KernelDensitySource::load_KDSource_from_file(const std::string& path)
-{
+  perturb = get_node_value_bool(node, "perturb");
   if (ends_with(path, ".xml")) {
     const char* filename = path.data();
-    kdsource = KDS_open(filename);
-    if (uint64_t diff_nparticles =
-          settings::n_particles % kdsource->plist->npts)
-      fatal_error(
-        "ERROR: the number of particles sampled must be a multiple of " +
-        std::to_string(kdsource->plist->npts) +
-        " (number of particles in the original MCPL file).");
+
+    // Reserve necesary memory
+    kdsource.reserve(num_threads());
+    threads_offset.reserve(num_threads());
+
+    // First inicialization of necesary variables
+    kdsource[0] = KDS_open(filename);
+    mcpl_nparticles = kdsource[0]->plist->npts;
+    threads_offset[0] = 0;
+
+    // Declaration of necesary variables
+    uint64_t part_thr = openmc::settings::n_particles/num_threads();
+    uint64_t rest_part_thr = openmc::settings::n_particles%num_threads();
+    for (int i = 1 ; i < num_threads() ; i++)
+    {
+      kdsource[i] = KDS_open(filename);
+      if (i < rest_part_thr)
+      {
+        threads_offset[i] = i * (part_thr + 1) - 1;
+      } else {
+        threads_offset[i] = i * part_thr + rest_part_thr -1;
+      }
+      PList_offset(kdsource[i]->plist, threads_offset[i]%mcpl_nparticles);
+    }
   } else {
     fatal_error("Specified starting source file not a source file type "
                 "compatible with KDSource.");
   }
 }
 
+KernelDensitySource::~KernelDensitySource(){
+  for (int i = 0; i < num_threads(); i++)
+    KDS_destroy(kdsource[i]);
+}
 KernelDensitySource::set_seed_to_pertub(uint64_t* seed, size_t i)
 {
   kdsource->geom->seed = seed;
@@ -382,12 +387,11 @@ SourceSite KernelDensitySource::sample(uint64_t* seed) const
 {
   mcpl_particle_t particle;
   const mcpl_particle_t* ptr_particle = &particle;
-
-#pragma omp critical
+  #pragma omp critical // has to be "critical" because KDSource's random number generator is not implemented in multi-threading
   {
-    if (resample)
-      this->set_seed_to_pertub(seed);
-    KDS_sample2(this->kdsource, &particle, this->resample, -1, NULL, 1);
+    prn(seed);
+    kdsource[thread_num()]->geom->seed = seed;
+    KDS_sample2(kdsource[thread_num()], &particle, perturb, -1, NULL, 1);    
   }
   return mcpl_particle_to_site(ptr_particle);
 }

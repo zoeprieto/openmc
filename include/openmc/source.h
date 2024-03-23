@@ -139,8 +139,11 @@ public:
   void set_seed_to_pertub(uint64_t* seed, size_t i);
 
 private:
-  KDSource* kdsource;
-  bool resample;
+  vector<KDSource*> kdsource;
+  vector<uint64_t> threads_offset;
+  uint64_t mcpl_nparticles;
+  bool perturb;
+  
   // extern "C" int64_t n_particles_resampled;
 };
 
