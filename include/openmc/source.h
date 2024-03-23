@@ -121,7 +121,6 @@ private:
   vector<SourceSite> sites_; //!< Source sites from a file
 };
 
-
 //==============================================================================
 //! Source composed of particles read from a KDSource extension.
 //==============================================================================
@@ -132,10 +131,13 @@ public:
   explicit KernelDensitySource(pugi::xml_node node);
   explicit KernelDensitySource(const std::string& path);
   ~KernelDensitySource();
+
   // Methods
   SourceSite sample(uint64_t* seed) const override;
-  void load_sites_from_file(
+  void load_KDSource_from_file(
     const std::string& path); //!< Load source sites from file
+  void set_seed_to_pertub(uint64_t* seed, size_t i);
+
 private:
   KDSource* kdsource;
   bool resample;

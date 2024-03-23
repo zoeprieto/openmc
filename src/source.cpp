@@ -282,7 +282,6 @@ SourceSite IndependentSource::sample(uint64_t* seed) const
   return site;
 }
 
-
 //==============================================================================
 // FileSource implementation
 //==============================================================================
@@ -343,14 +342,13 @@ KernelDensitySource::KernelDensitySource(pugi::xml_node node)
 {
   auto path = get_node_value(node, "KDSource", false, true);
   resample = get_node_value_bool(node, "resample");
-  if (ends_with(path, ".xml")) {
-    const char* filename = path.data();
-    kdsource = KDS_open(filename);
-    if(uint64_t diff_nparticles = settings::n_particles%kdsource->plist->npts)
-      fatal_error("ERROR: the number of particles sampled must be a multiple of " + std::to_string(kdsource->plist->npts) + " (number of particles in the original MCPL file).");
-  } else {
-    fatal_error("Specified starting source file not a source file type compatible with KDSource.");
-  }
+  this->load_KDSource_from_file(path);
+}
+
+KernelDensitySource::KernelDensitySource(const std::string& path)
+{
+  resample = true;
+  this->load_KDSource_from_file(path);
 }
 
 KernelDensitySource::~KernelDensitySource()
@@ -358,18 +356,39 @@ KernelDensitySource::~KernelDensitySource()
   KDS_destroy(kdsource);
 }
 
+KernelDensitySource::load_KDSource_from_file(const std::string& path)
+{
+  if (ends_with(path, ".xml")) {
+    const char* filename = path.data();
+    kdsource = KDS_open(filename);
+    if (uint64_t diff_nparticles =
+          settings::n_particles % kdsource->plist->npts)
+      fatal_error(
+        "ERROR: the number of particles sampled must be a multiple of " +
+        std::to_string(kdsource->plist->npts) +
+        " (number of particles in the original MCPL file).");
+  } else {
+    fatal_error("Specified starting source file not a source file type "
+                "compatible with KDSource.");
+  }
+}
+
+KernelDensitySource::set_seed_to_pertub(uint64_t* seed, size_t i)
+{
+  kdsource->geom->seed = seed;
+}
+
 SourceSite KernelDensitySource::sample(uint64_t* seed) const
 {
   mcpl_particle_t particle;
   const mcpl_particle_t* ptr_particle = &particle;
 
-  #pragma omp critical
+#pragma omp critical
   {
-    kdsource->geom->seed = seed;
+    if (resample)
+      this->set_seed_to_pertub(seed);
     KDS_sample2(this->kdsource, &particle, this->resample, -1, NULL, 1);
   }
-  // std::cout<< omp_get_thread_num() << std::endl;
-  // std::cout<< prn(seed) << std::endl;
   return mcpl_particle_to_site(ptr_particle);
 }
 
