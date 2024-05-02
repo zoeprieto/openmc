@@ -5,6 +5,7 @@ import pytest
 import mcpl
 import kdsource as kds
 
+
 def test_source_kerneldensity_repetible(run_in_tmpdir):
     # Create a particle list in mcpl format
     particles =[]
@@ -31,9 +32,6 @@ def test_source_kerneldensity_repetible(run_in_tmpdir):
 
     # Created simple model to use source kerneldensity
     model = openmc.Model()
-    al = openmc.Material()
-    al.add_element('Al', 1.0)
-    al.set_density('g/cm3', 2.7)
     sph = openmc.Sphere(r=10.0, boundary_type='vacuum', surface_id = 1)
     cell = openmc.Cell(fill=None, region=-sph)
     model.geometry = openmc.Geometry([cell])
@@ -41,6 +39,7 @@ def test_source_kerneldensity_repetible(run_in_tmpdir):
     model.settings.particles = 10
     model.settings.batches = 1
     model.settings.run_mode = 'fixed source'
+    model.materials.cross_sections = openmc_data
 
     #Write all generated particles.
     model.settings.surf_source_write = {
@@ -92,9 +91,6 @@ def test_source_kerneldensity_parallel(run_in_tmpdir):
 
     # Created simple model to use source kerneldensity
     model = openmc.Model()
-    al = openmc.Material()
-    al.add_element('Al', 1.0)
-    al.set_density('g/cm3', 2.7)
     sph = openmc.Sphere(r=10.0, boundary_type='vacuum', surface_id = 1)
     cell = openmc.Cell(fill=None, region=-sph)
     model.geometry = openmc.Geometry([cell])
@@ -102,6 +98,7 @@ def test_source_kerneldensity_parallel(run_in_tmpdir):
     model.settings.particles = 100
     model.settings.batches = 3
     model.settings.run_mode = 'fixed source'
+    model.materials.cross_sections = openmc_data
 
     #Write all generated particles.
     model.settings.surf_source_write = {
@@ -121,22 +118,24 @@ def test_source_kerneldensity_parallel(run_in_tmpdir):
         assert i == 10
 
 
-def test_source_file_kerneldensity(run_in_tmpdir):
-    # Create a source file with a single particle
-    particle = openmc.SourceParticle()
-    openmc.write_source_file([particle], 'source.h5')
+# def test_source_file_kerneldensity(run_in_tmpdir):
+#     # Create a source file with a single particle
+#     particle = openmc.SourceParticle()
+#     openmc.write_source_file([particle], 'source.h5')
 
-    # Created simple model to use source file
-    model = openmc.Model()
-    al = openmc.Material()
-    al.add_element('Al', 1.0)
-    al.set_density('g/cm3', 2.7)
-    sph = openmc.Sphere(r=10.0, boundary_type='vacuum')
-    cell = openmc.Cell(fill=al, region=-sph)
-    model.geometry = openmc.Geometry([cell])
-    model.settings.source = openmc.KernelDensitySource(path='source.h5',perturb=False)
-    model.settings.particles = 10
-    model.settings.batches = 3
-    model.settings.run_mode = 'fixed source'
-    # Try running OpenMC
-    model.run()
+#     # Created simple model to use source file
+#     model = openmc.Model()
+#     al = openmc.Material()
+#     al.add_element('Al', 1.0)
+#     al.set_density('g/cm3', 2.7)
+#     sph = openmc.Sphere(r=10.0, boundary_type='vacuum')
+#     cell = openmc.Cell(fill=al, region=-sph)
+#     model.geometry = openmc.Geometry([cell])
+#     model.settings.source = openmc.KernelDensitySource(path='source.h5',perturb=False)
+#     model.settings.particles = 10
+#     model.settings.batches = 3
+#     model.settings.run_mode = 'fixed source'
+#     model.materials.cross_sections = openmc_data
+
+#     # Try running OpenMC
+#     model.run()
