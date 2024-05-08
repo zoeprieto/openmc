@@ -143,6 +143,7 @@ private:
   vector<uint64_t> threads_offset;
   uint64_t mcpl_nparticles;
   bool perturb;
+  double w_critic = 0;
   
   // extern "C" int64_t n_particles_resampled;
 };

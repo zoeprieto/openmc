@@ -342,6 +342,8 @@ KernelDensitySource::KernelDensitySource(pugi::xml_node node)
 {
   auto path = get_node_value(node, "KDSource", false, true);
   perturb = get_node_value_bool(node, "perturb");
+  if (!get_node_value_bool(node, "adjust_weight"))
+    w_critic = -1;
   this->load_KDSource_from_file(path);
 }
 
@@ -374,6 +376,10 @@ void KernelDensitySource::load_KDSource_from_file(const std::string& path)
     mcpl_nparticles = kdsource[0]->plist->npts;
     threads_offset[0] = 0;
 
+    // Set the w_criti if it is not set before
+    if(!w_critic)
+      w_critic = KDS_w_mean(kdsource[0], 1000, NULL);
+
     // Declaration of necesary variables
     uint64_t part_thr = openmc::settings::n_particles/num_threads();
     uint64_t rest_part_thr = openmc::settings::n_particles%num_threads();
@@ -403,7 +409,7 @@ SourceSite KernelDensitySource::sample(uint64_t* seed) const
     prn(seed);
     if (perturb)
       this->set_seed_to_pertub(seed,thread_num());
-    KDS_sample2(kdsource[thread_num()], &particle, perturb, -1, NULL, 1);    
+    KDS_sample2(kdsource[thread_num()], &particle, perturb, w_critic, NULL, 1);    
   }
   return mcpl_particle_to_site(ptr_particle);
 }
