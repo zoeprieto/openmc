@@ -128,6 +128,8 @@ void Particle::from_source(const SourceSite* src)
   r_last_current() = src->r;
   r_last() = src->r;
   u_last() = src->u;
+  r_history().push_back(r_last());
+
   if (settings::run_CE) {
     E() = src->E;
     g() = 0;
@@ -152,7 +154,7 @@ void Particle::event_calculate_xs()
   u_last() = u();
   r_last() = r();
   time_last() = time();
-  r_history().push_back(r_last());
+  //r_history().push_back(r_last());
 
   // Reset event variables
   event() = TallyEvent::KILL;
@@ -353,7 +355,7 @@ void Particle::event_collide()
 
   // Save coordinates for tallying purposes
   r_last_current() = r();
-
+  r_history().push_back(r_last_current());
   // Set last material to none since cross sections will need to be
   // re-evaluated
   material_last() = C_NONE;
