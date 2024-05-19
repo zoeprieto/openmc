@@ -137,13 +137,15 @@ public:
   void load_KDSource_from_file(
     const std::string& path); //!< Load source sites from file
   void set_seed_to_pertub(uint64_t* seed, size_t i) const;
+  void reset_source_for_batch() const;
 
 private:
   vector<KDSource*> kdsource;
-  vector<uint64_t> threads_offset;
+  mutable vector<uint64_t> threads_offset;
   uint64_t mcpl_nparticles;
   bool perturb;
   double w_critic = 0;
+  mutable int current_batch = 1;
   
   // extern "C" int64_t n_particles_resampled;
 };

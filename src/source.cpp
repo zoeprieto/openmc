@@ -353,7 +353,8 @@ KernelDensitySource::KernelDensitySource(const std::string& path)
   this->load_KDSource_from_file(path);
 }
 
-KernelDensitySource::~KernelDensitySource(){
+KernelDensitySource::~KernelDensitySource()
+{
   for (int i = 0; i < num_threads(); i++)
     KDS_destroy(kdsource[i]);
 }
@@ -377,39 +378,62 @@ void KernelDensitySource::load_KDSource_from_file(const std::string& path)
     threads_offset[0] = 0;
 
     // Set the w_criti if it is not set before
-    if(!w_critic)
-      w_critic = KDS_w_mean(kdsource[0], 1000, NULL);
-
-    // Declaration of necesary variables
-    uint64_t part_thr = openmc::settings::n_particles/num_threads();
-    uint64_t rest_part_thr = openmc::settings::n_particles%num_threads();
-    for (int i = 1 ; i < num_threads() ; i++)
+    if (!w_critic)
     {
+      // w_critic = KDS_w_mean(kdsource[0], 1000, NULL);
+      w_critic=0.5;
+    }
+    // Declaration of necesary variables
+    uint64_t part_thr = openmc::settings::n_particles / num_threads();
+    uint64_t rest_part_thr = openmc::settings::n_particles % num_threads();
+    for (int i = 1; i < num_threads(); i++) {
       kdsource[i] = KDS_open(filename);
-      if (i < rest_part_thr)
-      {
-        threads_offset[i] = i * (part_thr + 1) - 1;
+      if (i < rest_part_thr) {
+        threads_offset[i] = i * (part_thr + 1) ;
       } else {
-        threads_offset[i] = i * part_thr + rest_part_thr -1;
+        threads_offset[i] = i * part_thr + rest_part_thr ;
       }
-      PList_offset(kdsource[i]->plist, threads_offset[i]%mcpl_nparticles);
+      PList_seek(kdsource[i]->plist, threads_offset[i] % mcpl_nparticles);
     }
   } else {
     fatal_error("Specified starting source file not a source file type "
                 "compatible with KDSource.");
-  }  
+  }
+}
+
+void KernelDensitySource::reset_source_for_batch() const
+{
+  for (int i = 0; i < num_threads(); i++) {
+    threads_offset[i] += openmc::settings::n_particles-1;
+    PList_offset(kdsource[i]->plist, threads_offset[i] % mcpl_nparticles);
+  }
 }
 
 SourceSite KernelDensitySource::sample(uint64_t* seed) const
 {
   mcpl_particle_t particle;
   const mcpl_particle_t* ptr_particle = &particle;
-  #pragma omp critical // it has to be "critical" because KDSource's random number generator is not implemented in multi-threading
+#pragma omp critical // it has to be "critical" because KDSource's random number
+                     // generator is not implemented in multi-threading
   {
-    prn(seed);
+    if (openmc::simulation::current_batch > current_batch)
+    {
+      current_batch++;
+      this->reset_source_for_batch();
+      std::cout << Plist_current(kdsource[thread_num()]->plist) << '\t' <<*seed << '\t' << thread_num() << '\t' << openmc::simulation::current_batch <<'\n';
+    }
+    std::cout << Plist_current(kdsource[thread_num()]->plist) << '\t' <<*seed << '\t' << thread_num() << '\t' << openmc::simulation::current_batch <<'\n';
+    // prn(seed);
     if (perturb)
-      this->set_seed_to_pertub(seed,thread_num());
-    KDS_sample2(kdsource[thread_num()], &particle, perturb, w_critic, NULL, 1);    
+      this->set_seed_to_pertub(seed, thread_num());
+    KDS_sample2(kdsource[thread_num()], &particle, perturb, w_critic, NULL, 1);
+    // if (openmc::simulation::current_batch == 21)
+    // {
+    //   std::cout << particle.ekin << '\n';
+    //   std::cout << "Pase mi loco" << '\n';
+    // }
+  // SourceSite site = mcpl_particle_to_site(ptr_particle);
+  // std::cout << site.E << '\t' << site.parent_id << '\t' << site.wgt << '\t' << site.r[0] <<'\n';
   }
   return mcpl_particle_to_site(ptr_particle);
 }
