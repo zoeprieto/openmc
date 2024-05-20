@@ -380,8 +380,9 @@ void KernelDensitySource::load_KDSource_from_file(const std::string& path)
     // Set the w_criti if it is not set before
     if (!w_critic)
     {
-      // w_critic = KDS_w_mean(kdsource[0], 1000, NULL);
-      w_critic=0.5;
+      w_critic = KDS_w_mean(kdsource[0], 1000, NULL);
+      PList_seek(kdsource[0]->plist, 0);
+      Geom_seek(kdsource[0]->geom, 0);
     }
     // Declaration of necesary variables
     uint64_t part_thr = openmc::settings::n_particles / num_threads();
@@ -394,6 +395,7 @@ void KernelDensitySource::load_KDSource_from_file(const std::string& path)
         threads_offset[i] = i * part_thr + rest_part_thr ;
       }
       PList_seek(kdsource[i]->plist, threads_offset[i] % mcpl_nparticles);
+      Geom_seek(kdsource[i]->geom, threads_offset[i] % mcpl_nparticles);
     }
   } else {
     fatal_error("Specified starting source file not a source file type "
@@ -404,8 +406,9 @@ void KernelDensitySource::load_KDSource_from_file(const std::string& path)
 void KernelDensitySource::reset_source_for_batch() const
 {
   for (int i = 0; i < num_threads(); i++) {
-    threads_offset[i] += openmc::settings::n_particles-1;
-    PList_offset(kdsource[i]->plist, threads_offset[i] % mcpl_nparticles);
+    threads_offset[i] += openmc::settings::n_particles;
+    PList_seek(kdsource[i]->plist, threads_offset[i] % mcpl_nparticles);
+    Geom_seek(kdsource[i]->geom, threads_offset[i] % mcpl_nparticles);
   }
 }
 
@@ -423,7 +426,7 @@ SourceSite KernelDensitySource::sample(uint64_t* seed) const
       std::cout << Plist_current(kdsource[thread_num()]->plist) << '\t' <<*seed << '\t' << thread_num() << '\t' << openmc::simulation::current_batch <<'\n';
     }
     std::cout << Plist_current(kdsource[thread_num()]->plist) << '\t' <<*seed << '\t' << thread_num() << '\t' << openmc::simulation::current_batch <<'\n';
-    // prn(seed);
+    prn(seed);
     if (perturb)
       this->set_seed_to_pertub(seed, thread_num());
     KDS_sample2(kdsource[thread_num()], &particle, perturb, w_critic, NULL, 1);
