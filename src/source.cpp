@@ -377,13 +377,14 @@ void KernelDensitySource::load_KDSource_from_file(const std::string& path)
     mcpl_nparticles = kdsource[0]->plist->npts;
     threads_offset[0] = 0;
 
-    // Set the w_criti if it is not set before
+    // Set the w_critic if it is not settled before
     if (!w_critic)
     {
       w_critic = KDS_w_mean(kdsource[0], 1000, NULL);
       PList_seek(kdsource[0]->plist, 0);
       Geom_seek(kdsource[0]->geom, 0);
     }
+
     // Declaration of necesary variables
     uint64_t part_thr = openmc::settings::n_particles / num_threads();
     uint64_t rest_part_thr = openmc::settings::n_particles % num_threads();
@@ -423,20 +424,11 @@ SourceSite KernelDensitySource::sample(uint64_t* seed) const
     {
       current_batch++;
       this->reset_source_for_batch();
-      std::cout << Plist_current(kdsource[thread_num()]->plist) << '\t' <<*seed << '\t' << thread_num() << '\t' << openmc::simulation::current_batch <<'\n';
     }
-    std::cout << Plist_current(kdsource[thread_num()]->plist) << '\t' <<*seed << '\t' << thread_num() << '\t' << openmc::simulation::current_batch <<'\n';
     prn(seed);
     if (perturb)
       this->set_seed_to_pertub(seed, thread_num());
     KDS_sample2(kdsource[thread_num()], &particle, perturb, w_critic, NULL, 1);
-    // if (openmc::simulation::current_batch == 21)
-    // {
-    //   std::cout << particle.ekin << '\n';
-    //   std::cout << "Pase mi loco" << '\n';
-    // }
-  // SourceSite site = mcpl_particle_to_site(ptr_particle);
-  // std::cout << site.E << '\t' << site.parent_id << '\t' << site.wgt << '\t' << site.r[0] <<'\n';
   }
   return mcpl_particle_to_site(ptr_particle);
 }
