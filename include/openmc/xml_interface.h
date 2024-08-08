@@ -23,6 +23,7 @@ std::string get_node_value(pugi::xml_node node, const char* name,
   bool lowercase = false, bool strip = false);
 
 bool get_node_value_bool(pugi::xml_node node, const char* name);
+long long get_node_value_longlong(pugi::xml_node node, const char* name);
 
 template<typename T>
 vector<T> get_node_array(
