@@ -11,9 +11,6 @@
 
 #include <fmt/core.h>
 
-#ifdef OPENMC_MCPL
-#include <mcpl.h>
-#endif
 
 namespace openmc {
 

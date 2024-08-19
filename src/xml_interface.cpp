@@ -48,6 +48,21 @@ bool get_node_value_bool(pugi::xml_node node, const char* name)
   return false;
 }
 
+
+long long get_node_value_longlong(pugi::xml_node node, const char* name)
+{
+  if (node.attribute(name)) {
+    return node.attribute(name).as_llong();
+  } else if (node.child(name)) {
+    return node.child(name).text().as_llong();
+  } else {
+    fatal_error(fmt::format(
+      "Node \"{}\" is not a member of the \"{}\" XML node", name, node.name()));
+  }
+  return 0;
+}
+
+
 Position get_node_position(
   pugi::xml_node node, const char* name, bool lowercase)
 {

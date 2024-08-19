@@ -15,6 +15,13 @@
 #include "openmc/particle.h"
 #include "openmc/vector.h"
 
+#ifdef OPENMC_MCPL
+#include <mcpl.h>
+extern "C" {
+#include "kdsource.h"
+}
+#endif
+
 namespace openmc {
 
 //==============================================================================
@@ -169,6 +176,35 @@ protected:
 
 private:
   vector<SourceSite> sites_; //!< Source sites from a file
+};
+
+//==============================================================================
+//! Source composed of particles read from a KDSource extension.
+//==============================================================================
+
+class KernelDensitySource : public Source {
+public:
+  // Constructors
+  explicit KernelDensitySource(pugi::xml_node node);
+  explicit KernelDensitySource(const std::string& path);
+  ~KernelDensitySource();
+
+  // Methods
+  SourceSite sample(uint64_t* seed) const override;
+  void load_KDSource_from_file(
+    const std::string& path); //!< Load source sites from file
+  void set_seed_to_pertub(uint64_t* seed, size_t i) const;
+  void reset_source_for_batch() const;
+
+private:
+  vector<KDSource*> kdsource;
+  mutable vector<uint64_t> threads_offset;
+  uint64_t mcpl_nparticles;
+  bool perturb;
+  double w_critic = 0;
+  mutable int current_batch = 1;
+  
+  // extern "C" int64_t n_particles_resampled;
 };
 
 //==============================================================================
