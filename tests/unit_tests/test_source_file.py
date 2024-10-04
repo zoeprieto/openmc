@@ -69,6 +69,31 @@ def test_source_file(run_in_tmpdir):
     assert np.all(p_types == 0)
 
 
+    site = sites[0]
+    site.export_to_hdf5("test_source_site.h5")
+    # Ensure sites read in are consistent
+    site = openmc.read_source_file('test_source_site.h5')
+    assert len(site) == 1
+    assert site[0].E == n
+
+    sites_slice = sites[0:10]
+    sites_slice.export_to_hdf5("test_source_slice.h5")
+    # Ensure sites read in are consistent
+    sites_slice = openmc.read_source_file('test_source_slice.h5')
+    assert len(sites_slice) == 10
+    E = np.array([s.E for s in sites_slice])
+    assert np.all(E == n - np.arange(10))
+    
+    df = sites.to_dataframe()
+    sites_filtered = sites[df[df['E'] <= 10.0].index.tolist()]
+    sites_filtered.export_to_hdf5("test_source_filtered.h5")
+    # Ensure sites read in are consistent
+    sites_filtered = openmc.read_source_file('test_source_filtered.h5')
+    assert len(sites_filtered) == 10
+    E = np.array([s.E for s in sites_filtered])
+    assert np.all(E == np.arange(1,11))
+
+
 def test_wrong_source_attributes(run_in_tmpdir):
     # Create a source file with animal attributes
     source_dtype = np.dtype([
