@@ -107,6 +107,8 @@ public:
 
   bool higher_moments() const { return higher_moments_; }
 
+  bool virtual_tally() const { return virtual_tally_; }
+
   //----------------------------------------------------------------------------
   // Other methods.
 
@@ -193,6 +195,9 @@ private:
 
   //! Whether to accumulate higher moments (third and fourth)
   bool higher_moments_ {false};
+
+  //! Whether to count virtual particles
+  bool virtual_tally_ {false};
 
   int64_t index_;
 };

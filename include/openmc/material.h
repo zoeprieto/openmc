@@ -178,6 +178,10 @@ public:
   bool depletable() const { return depletable_; }
   bool& depletable() { return depletable_; }
 
+  //! Whether or not the material run contributon
+  bool run_contributon() const { return run_contributon_; }
+  bool& run_contributon() { return run_contributon_; }
+
   //! Get pointer to NCrystal material object
   //! \return Pointer to NCrystal material object
   const NCrystalMat& ncrystal_mat() const { return ncrystal_mat_; };
@@ -229,6 +233,7 @@ private:
   int64_t index_;
 
   bool depletable_ {false}; //!< Is the material depletable?
+  bool run_contributon_ {false}; //!< Run contributons?
   bool fissionable_ {
     false}; //!< Does this material contain fissionable nuclides
   //! \brief Default temperature for cells containing this material.

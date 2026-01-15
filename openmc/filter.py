@@ -22,12 +22,13 @@ from ._xml import get_elem_list, get_text
 
 
 _FILTER_TYPES = (
-    'universe', 'material', 'cell', 'cellborn', 'surface', 'mesh', 'energy',
-    'energyout', 'mu', 'musurface', 'polar', 'azimuthal', 'distribcell',
-    'delayedgroup', 'energyfunction', 'cellfrom', 'materialfrom', 'legendre',
-    'spatiallegendre', 'sphericalharmonics', 'zernike', 'zernikeradial', 'particle',
-    'particleproduction', 'cellinstance', 'collision', 'time', 'parentnuclide',
-    'weight', 'meshborn', 'meshsurface', 'meshmaterial', 'reaction',
+    'universe', 'material', 'cell', 'cellborn', 'surface', 'mesh', 'meshchar', 
+    'adjointmesh', 'adjointsourcemesh', 'energy', 'energyout', 'mu', 'musurface', 
+    'polar', 'azimuthal', 'distribcell', 'delayedgroup', 'energyfunction', 
+    'cellfrom','celladjoint', 'cellsourceadjoint', 'materialfrom', 'legendre', 
+    'spatiallegendre', 'sphericalharmonics', 'zernike', 'zernikeradial', 'particle', 
+    'particleproduction', 'cellinstance', 'collision', 'time', 'parentnuclide', 
+    'weight', 'meshborn', 'meshsurface','meshmaterial', 'reaction',
 )
 
 _CURRENT_NAMES = (
@@ -564,6 +565,51 @@ class CellFromFilter(WithIDFilter):
     """
     expected_type = Cell
 
+class CellAdjointFilter(WithIDFilter):
+    """Bins tally on which cell the adjoint flux is calculated.
+
+    Parameters
+    ----------
+    bins : openmc.Cell, Integral, or iterable thereof
+        The cell(s) to tally. Either :class:`openmc.Cell` objects or their
+        integral ID numbers can be used.
+    filter_id : int
+        Unique identifier for the filter
+
+    Attributes
+    ----------
+    bins : Integral or Iterable of Integral
+        Cell IDs.
+    id : int
+        Unique identifier for the filter
+    num_bins : Integral
+        The number of filter bins
+
+    """
+    expected_type = Cell
+
+class CellSourceAdjointFilter(WithIDFilter):
+    """Bins tally on which cell the adjoint flux is calculated.
+
+    Parameters
+    ----------
+    bins : openmc.Cell, Integral, or iterable thereof
+        The cell(s) to tally. Either :class:`openmc.Cell` objects or their
+        integral ID numbers can be used.
+    filter_id : int
+        Unique identifier for the filter
+
+    Attributes
+    ----------
+    bins : Integral or Iterable of Integral
+        Cell IDs.
+    id : int
+        Unique identifier for the filter
+    num_bins : Integral
+        The number of filter bins
+
+    """
+    expected_type = Cell
 
 class CellBornFilter(WithIDFilter):
     """Bins tally events based on which cell the particle was born in.
@@ -1042,9 +1088,8 @@ class MeshFilter(Filter):
                 out.rotation = np.array(rotation).reshape(3, 3)
         return out
 
-
-class MeshBornFilter(MeshFilter):
-    """Filter events by the mesh cell a particle originated from.
+class MeshCharFilter(MeshFilter):
+    """Bins tally source event locations by mesh elements.
 
     Parameters
     ----------
@@ -1070,7 +1115,56 @@ class MeshBornFilter(MeshFilter):
 
     """
 
+class AdjointSourceMeshFilter(MeshFilter):
+    """Bins adjoint source event locations by mesh elements.
+    Parameters
+    ----------
+    mesh : openmc.MeshBase
+        The mesh object that events will be tallied onto
+    filter_id : int
+        Unique identifier for the filter
+    Attributes
+    ----------
+    mesh : openmc.MeshBase
+        The mesh object that events will be tallied onto
+    id : int
+        Unique identifier for the filter
+    translation : Iterable of float
+        This array specifies a vector that is used to translate (shift)
+        the mesh for this filter
+    bins : list of tuple
+        A list of mesh indices for each filter bin, e.g. [(1, 1, 1), (2, 1, 1),
+        ...]
+    num_bins : Integral
+        The number of filter bins
+    """
 
+
+    
+class AdjointMeshFilter(MeshFilter):
+    """Bins adjoint tally event locations by mesh elements.
+    Parameters
+    ----------
+    mesh : openmc.MeshBase
+        The mesh object that events will be tallied onto
+    filter_id : int
+        Unique identifier for the filter
+    Attributes
+    ----------
+    mesh : openmc.MeshBase
+        The mesh object that events will be tallied onto
+    id : int
+        Unique identifier for the filter
+    translation : Iterable of float
+        This array specifies a vector that is used to translate (shift)
+        the mesh for this filter
+    bins : list of tuple
+        A list of mesh indices for each filter bin, e.g. [(1, 1, 1), (2, 1, 1),
+        ...]
+    num_bins : Integral
+        The number of filter bins
+    """
+    
 class MeshMaterialFilter(MeshFilter):
     """Filter events by combinations of mesh elements and materials.
 

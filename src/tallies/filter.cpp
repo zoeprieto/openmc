@@ -13,6 +13,8 @@
 #include "openmc/tallies/filter_azimuthal.h"
 #include "openmc/tallies/filter_cell.h"
 #include "openmc/tallies/filter_cell_instance.h"
+#include "openmc/tallies/filter_celladjoint.h"
+#include "openmc/tallies/filter_cellsourceadjoint.h"
 #include "openmc/tallies/filter_cellborn.h"
 #include "openmc/tallies/filter_cellfrom.h"
 #include "openmc/tallies/filter_collision.h"
@@ -23,9 +25,12 @@
 #include "openmc/tallies/filter_legendre.h"
 #include "openmc/tallies/filter_material.h"
 #include "openmc/tallies/filter_materialfrom.h"
+#include "openmc/tallies/filter_adjointmesh.h"
+#include "openmc/tallies/filter_adjointsourcemesh.h"
 #include "openmc/tallies/filter_mesh.h"
 #include "openmc/tallies/filter_meshborn.h"
 #include "openmc/tallies/filter_meshmaterial.h"
+#include "openmc/tallies/filter_meshchar.h"
 #include "openmc/tallies/filter_meshsurface.h"
 #include "openmc/tallies/filter_mu.h"
 #include "openmc/tallies/filter_musurface.h"
@@ -108,6 +113,10 @@ Filter* Filter::create(const std::string& type, int32_t id)
     return Filter::create<AzimuthalFilter>(id);
   } else if (type == "cell") {
     return Filter::create<CellFilter>(id);
+  } else if (type == "celladjoint") {
+    return Filter::create<CellAdjointFilter>(id);
+  } else if (type == "cellsourceadjoint") {
+    return Filter::create<CellSourceAdjointFilter>(id);
   } else if (type == "cellborn") {
     return Filter::create<CellBornFilter>(id);
   } else if (type == "cellfrom") {
@@ -132,12 +141,18 @@ Filter* Filter::create(const std::string& type, int32_t id)
     return Filter::create<MaterialFilter>(id);
   } else if (type == "materialfrom") {
     return Filter::create<MaterialFromFilter>(id);
+  } else if (type == "adjointmesh") {
+    return Filter::create<AdjointMeshFilter>(id);
+  } else if (type == "adjointsourcemesh") {
+    return Filter::create<AdjointSourceMeshFilter>(id);
   } else if (type == "mesh") {
     return Filter::create<MeshFilter>(id);
   } else if (type == "meshborn") {
     return Filter::create<MeshBornFilter>(id);
   } else if (type == "meshmaterial") {
     return Filter::create<MeshMaterialFilter>(id);
+  } else if (type == "meshchar") {
+    return Filter::create<MeshCharFilter>(id);
   } else if (type == "meshsurface") {
     return Filter::create<MeshSurfaceFilter>(id);
   } else if (type == "mu") {

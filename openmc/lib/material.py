@@ -66,6 +66,12 @@ _dll.openmc_material_get_depletable.errcheck = _error_handler
 _dll.openmc_material_set_depletable.argtypes = [c_int32, c_bool]
 _dll.openmc_material_set_depletable.restype = c_int
 _dll.openmc_material_set_depletable.errcheck = _error_handler
+_dll.openmc_material_get_run_contributon.argtypes = [c_int32, POINTER(c_bool)]
+_dll.openmc_material_get_run_contributon.restype = c_int
+_dll.openmc_material_get_run_contributon.errcheck = _error_handler
+_dll.openmc_material_set_run_contributon.argtypes = [c_int32, c_bool]
+_dll.openmc_material_set_run_contributon.restype = c_int
+_dll.openmc_material_set_run_contributon.errcheck = _error_handler
 _dll.n_materials.argtypes = []
 _dll.n_materials.restype = c_size_t
 
@@ -97,6 +103,8 @@ class Material(_FortranObjectWithID):
         Array of densities in atom/b-cm
     depletable : bool
         Whether this material is marked as depletable
+    run_contributon : bool
+        Whether this material is marked as run_contributon
     name : str
         Name of the material
     temperature : float
@@ -186,6 +194,16 @@ class Material(_FortranObjectWithID):
     @depletable.setter
     def depletable(self, depletable):
         _dll.openmc_material_set_depletable(self._index, depletable)
+
+    @property
+    def run_contributon(self):
+        run_contributon = c_bool()
+        _dll.openmc_material_get_run_contributon(self._index, run_contributon)
+        return run_contributon.value
+
+    @run_contributon.setter
+    def run_contributon(self, run_contributon):
+        _dll.openmc_material_set_run_contributon(self._index, run_contributon)
 
     @property
     def nuclides(self):

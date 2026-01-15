@@ -69,6 +69,7 @@ double Particle::mass() const
 {
   switch (type().pdg_number()) {
   case PDG_NEUTRON:
+  case PDF_NEUTRON_CONTRIBUTON:
     return MASS_NEUTRON_EV;
   case PDG_ELECTRON:
   case PDG_POSITRON:
@@ -138,17 +139,28 @@ void Particle::from_source(const SourceSite* src)
 #ifdef OPENMC_DAGMC_ENABLED
   history().reset();
 #endif
+  r_history() = std::vector<Position>{};
 
   // Copy attributes from source bank site
   type() = src->particle;
   wgt() = src->wgt;
   wgt_last() = src->wgt;
+  wgt_first() = src->wgt;
+  if(type().is_neutron_contributon()){
+    wgt() = 1.0;
+    wgt_last() = 1.0;
+    wgt_first() = 1.0;
+  }
+  wgt_previous() = src->wgt;
   r() = src->r;
   u() = src->u;
   r_born() = src->r;
+  r_source() = r();
   r_last_current() = src->r;
   r_last() = src->r;
   u_last() = src->u;
+  r_history().push_back(r_last());
+
   if (settings::run_CE) {
     E() = src->E;
     g() = 0;
@@ -181,6 +193,7 @@ void Particle::event_calculate_xs()
   u_last() = u();
   r_last() = r();
   time_last() = time();
+  //r_history().push_back(r_last());
 
   // Reset event variables
   event() = TallyEvent::KILL;
@@ -421,7 +434,7 @@ void Particle::event_collide()
 
   // Save coordinates for tallying purposes
   r_last_current() = r();
-
+  r_history().push_back(r_last_current());
   // Set last material to none since cross sections will need to be
   // re-evaluated
   material_last() = C_NONE;
@@ -678,8 +691,10 @@ void Particle::cross_vacuum_bc(const Surface& surf)
   }
 
   // Score to global leakage tally
-  keff_tally_leakage() += wgt();
-
+  if(type() == ParticleType::neutron) {
+    keff_tally_leakage() += wgt();
+  }
+  
   // Kill the particle
   wgt() = 0.0;
 
@@ -986,6 +1001,10 @@ void add_surf_source_to_bank(Particle& p, const Surface& surf)
       }
     }
   }
+  if (p.type().is_neutron_contributon()) {
+    return;
+  }
+
 
   SourceSite site;
   site.r = p.r();

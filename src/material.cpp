@@ -69,6 +69,9 @@ Material::Material(pugi::xml_node node)
   if (check_for_node(node, "depletable")) {
     depletable_ = get_node_value_bool(node, "depletable");
   }
+  if (check_for_node(node, "run_contributon")) {
+    run_contributon_ = get_node_value_bool(node, "run_contributon");
+  }
 
   bool sum_density {false};
   pugi::xml_node density_node = node.child("density");
@@ -373,6 +376,7 @@ Material& Material::clone()
   mat->volume_ = volume_;
   mat->fissionable() = fissionable_;
   mat->depletable() = depletable_;
+  mat->run_contributon() = run_contributon_;
   mat->p0_ = p0_;
   mat->mat_nuclide_index_ = mat_nuclide_index_;
   mat->thermal_tables_ = thermal_tables_;
@@ -818,7 +822,7 @@ void Material::calculate_xs(Particle& p) const
   p.macro_xs().fission = 0.0;
   p.macro_xs().nu_fission = 0.0;
 
-  if (p.type().is_neutron()) {
+  if (p.type().is_neutron() || p.type().is_neutron_contributon()) {
     this->calculate_neutron_xs(p);
   } else if (p.type().is_photon()) {
     this->calculate_photon_xs(p);
@@ -1077,6 +1081,7 @@ void Material::to_hdf5(hid_t group) const
   hid_t material_group = create_group(group, "material " + std::to_string(id_));
 
   write_attribute(material_group, "depletable", static_cast<int>(depletable()));
+  write_attribute(material_group, "run_contributon", static_cast<int>(run_contributon()));
   if (volume_ > 0.0) {
     write_attribute(material_group, "volume", volume_);
   }
@@ -1578,6 +1583,30 @@ extern "C" int openmc_material_set_depletable(int32_t index, bool depletable)
   }
 
   model::materials[index]->depletable() = depletable;
+
+  return 0;
+}
+
+extern "C" int openmc_material_get_run_contributon(int32_t index, bool* run_contributon)
+{
+  if (index < 0 || index >= model::materials.size()) {
+    set_errmsg("Index in materials array is out of bounds.");
+    return OPENMC_E_OUT_OF_BOUNDS;
+  }
+
+  *run_contributon = model::materials[index]->run_contributon();
+
+  return 0;
+}
+
+extern "C" int openmc_material_set_run_contributon(int32_t index, bool run_contributon)
+{
+  if (index < 0 || index >= model::materials.size()) {
+    set_errmsg("Index in materials array is out of bounds.");
+    return OPENMC_E_OUT_OF_BOUNDS;
+  }
+
+  model::materials[index]->run_contributon() = run_contributon;
 
   return 0;
 }

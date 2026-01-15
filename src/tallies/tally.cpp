@@ -20,6 +20,8 @@
 #include "openmc/tallies/derivative.h"
 #include "openmc/tallies/filter.h"
 #include "openmc/tallies/filter_cell.h"
+#include "openmc/tallies/filter_celladjoint.h"
+#include "openmc/tallies/filter_cellsourceadjoint.h"
 #include "openmc/tallies/filter_cellborn.h"
 #include "openmc/tallies/filter_cellfrom.h"
 #include "openmc/tallies/filter_collision.h"
@@ -29,6 +31,9 @@
 #include "openmc/tallies/filter_mesh.h"
 #include "openmc/tallies/filter_meshborn.h"
 #include "openmc/tallies/filter_meshmaterial.h"
+#include "openmc/tallies/filter_adjointmesh.h"
+#include "openmc/tallies/filter_adjointsourcemesh.h"
+#include "openmc/tallies/filter_meshchar.h"
 #include "openmc/tallies/filter_meshsurface.h"
 #include "openmc/tallies/filter_particle.h"
 #include "openmc/tallies/filter_sph_harm.h"
@@ -108,6 +113,10 @@ Tally::Tally(pugi::xml_node node)
 
   if (check_for_node(node, "higher_moments")) {
     higher_moments_ = get_node_value_bool(node, "higher_moments");
+  }
+
+  if (check_for_node(node, "virtual_tally")) {
+    virtual_tally_ = get_node_value_bool(node, "virtual_tally");
   }
   // =======================================================================
   // READ DATA FOR FILTERS
@@ -250,7 +259,20 @@ Tally::Tally(pugi::xml_node node)
       }
     }
   }
-
+  if (this->virtual_tally() && particle_filter_index == C_NONE) {
+    fatal_error("Virtual tallies have to be used in combination with contributon "
+                "particle filter.");
+  }
+  if (particle_filter_index >= 0) {
+    const auto& f = model::tally_filters[particle_filter_index].get();
+    auto pf = dynamic_cast<ParticleFilter*>(f);
+    for (auto p : pf->particles()) {
+      if (p == ParticleType::neutron_contributon && this->virtual_tally() == false) {
+        fatal_error("Contributon particles have to be used in combination with virtual "
+                    "tally attribute.");
+      }
+    }
+  }
   // Check if tally is compatible with particle type
   if (!settings::photon_transport) {
     for (int score : scores_) {
@@ -539,6 +561,8 @@ void Tally::set_scores(const vector<std::string>& scores)
   bool energyout_present = energyout_filter_ != C_NONE;
   bool legendre_present = false;
   bool cell_present = false;
+  bool celladjoint_present = false;
+  bool cellsourceadjoint_present = false;
   bool cellfrom_present = false;
   bool material_present = false;
   bool materialfrom_present = false;
@@ -554,6 +578,10 @@ void Tally::set_scores(const vector<std::string>& scores)
     }
     if (filt->type() == FilterType::LEGENDRE) {
       legendre_present = true;
+    } else if (filt->type() == FilterType::CELLADJOINT) {
+      celladjoint_present = true;
+    } else if (filt->type() == FilterType::CELLSOURCEADJOINT) {
+      cellsourceadjoint_present = true;
     } else if (filt->type() == FilterType::CELLFROM) {
       cellfrom_present = true;
     } else if (filt->type() == FilterType::CELL) {

@@ -18,9 +18,10 @@ from .mesh import _get_mesh
 
 __all__ = [
     'Filter', 'AzimuthalFilter', 'CellFilter', 'CellbornFilter', 'CellfromFilter',
-    'CellInstanceFilter', 'CollisionFilter', 'DistribcellFilter', 'DelayedGroupFilter',
-    'EnergyFilter', 'EnergyoutFilter', 'EnergyFunctionFilter', 'LegendreFilter',
-    'MaterialFilter', 'MaterialFromFilter', 'MeshFilter', 'MeshBornFilter',
+    'CelladjointFilter', 'CellsourceadjointFilter', 'MeshCharFilter', 'AdjointMeshFilter',
+    'AdjointSourceMeshFilter', 'CellInstanceFilter', 'CollisionFilter', 'DistribcellFilter', 
+    'DelayedGroupFilter', 'EnergyFilter', 'EnergyoutFilter', 'EnergyFunctionFilter', 
+    'LegendreFilter', 'MaterialFilter', 'MaterialFromFilter', 'MeshFilter', 'MeshBornFilter',
     'MeshMaterialFilter', 'MeshSurfaceFilter', 'MuFilter', 'MuSurfaceFilter',
     'ParentNuclideFilter', 'ParticleFilter', 'ParticleProductionFilter', 'PolarFilter',
     'ReactionFilter', 'SphericalHarmonicsFilter', 'SpatialLegendreFilter',
@@ -253,6 +254,12 @@ class CellFilter(Filter):
         return as_array(cells, (n.value,))
 
 
+class CelladjointFilter(Filter):
+    filter_type = 'celladjoint'
+
+class CellsourceadjointFilter(Filter):
+    filter_type = 'cellsourceadjoint'
+
 class CellbornFilter(Filter):
     filter_type = 'cellborn'
 
@@ -466,6 +473,104 @@ class MeshFilter(Filter):
         _dll.openmc_mesh_filter_set_rotation(
             self._index, flat_rotation.ctypes.data_as(POINTER(c_double)),
             c_size_t(len(flat_rotation)))
+class MeshCharFilter(Filter):
+    filter_type = 'meshchar'
+
+    def __init__(self, mesh=None, uid=None, new=True, index=None):
+        super().__init__(uid, new, index)
+        if mesh is not None:
+            self.mesh = mesh
+
+    @property
+    def mesh(self):
+        index_mesh = c_int32()
+        _dll.openmc_mesh_filter_get_mesh(self._index, index_mesh)
+        return _get_mesh(index_mesh.value)
+
+    @mesh.setter
+    def mesh(self, mesh):
+        _dll.openmc_mesh_filter_set_mesh(self._index, mesh._index)
+
+    @property
+    def translation(self):
+        translation = (c_double*3)()
+        _dll.openmc_mesh_filter_get_translation(self._index, translation)
+        return tuple(translation)
+
+    @translation.setter
+    def translation(self, translation):
+        _dll.openmc_mesh_filter_set_translation(self._index, (c_double*3)(*translation))
+
+
+class AdjointMeshFilter(MeshFilter):
+    """Mesh filter stored internally.
+
+    This class exposes a Mesh filter that is stored internally in the OpenMC
+    library. To obtain a view of a Mesh filter with a given ID, use the
+    :data:`openmc.lib.filters` mapping.
+
+    Parameters
+    ----------
+    mesh : openmc.lib.Mesh
+        Mesh to use for the filter
+    uid : int or None
+        Unique ID of the Mesh filter
+    new : bool
+        When `index` is None, this argument controls whether a new object is
+        created or a view of an existing object is returned.
+    index : int
+        Index in the `filters` array.
+
+    Attributes
+    ----------
+    filter_type : str
+        Type of filter
+    mesh : openmc.lib.Mesh
+        Mesh used for the filter
+    translation : Iterable of float
+        3-D coordinates of the translation vector
+    rotation : Iterable of float
+        The rotation matrix or angles of the filter mesh. This can either be 
+        a fully specified 3 x 3 rotation matrix or an Iterable of length 3 
+        with the angles in degrees about the x, y, and z axes, respectively.
+
+    """
+    filter_type = 'adjointmesh'
+
+class AdjointSourceMeshFilter(MeshFilter):
+    """Mesh filter stored internally.
+
+    This class exposes a Mesh filter that is stored internally in the OpenMC
+    library. To obtain a view of a Mesh filter with a given ID, use the
+    :data:`openmc.lib.filters` mapping.
+
+    Parameters
+    ----------
+    mesh : openmc.lib.Mesh
+        Mesh to use for the filter
+    uid : int or None
+        Unique ID of the Mesh filter
+    new : bool
+        When `index` is None, this argument controls whether a new object is
+        created or a view of an existing object is returned.
+    index : int
+        Index in the `filters` array.
+
+    Attributes
+    ----------
+    filter_type : str
+        Type of filter
+    mesh : openmc.lib.Mesh
+        Mesh used for the filter
+    translation : Iterable of float
+        3-D coordinates of the translation vector
+    rotation : Iterable of float
+        The rotation matrix or angles of the filter mesh. This can either be 
+        a fully specified 3 x 3 rotation matrix or an Iterable of length 3 
+        with the angles in degrees about the x, y, and z axes, respectively.
+
+    """
+    filter_type = 'adjointsourcemesh'
 
 class MeshBornFilter(Filter):
     """MeshBorn filter stored internally.
@@ -700,6 +805,8 @@ class ZernikeRadialFilter(ZernikeFilter):
 _FILTER_TYPE_MAP = {
     'azimuthal': AzimuthalFilter,
     'cell': CellFilter,
+    'celladjoint': CelladjointFilter,
+    'cellsourceadjoint': CellsourceadjointFilter,
     'cellborn': CellbornFilter,
     'cellfrom': CellfromFilter,
     'cellinstance': CellInstanceFilter,
@@ -715,6 +822,9 @@ _FILTER_TYPE_MAP = {
     'mesh': MeshFilter,
     'meshborn': MeshBornFilter,
     'meshmaterial': MeshMaterialFilter,
+    'meshchar': MeshCharFilter,
+    'adjointmesh': AdjointMeshFilter,
+    'adjointsourcemesh': AdjointSourceMeshFilter,
     'meshsurface': MeshSurfaceFilter,
     'mu': MuFilter,
     'musurface': MuSurfaceFilter,

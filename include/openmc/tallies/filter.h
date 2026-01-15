@@ -18,6 +18,8 @@ namespace openmc {
 
 enum class FilterType {
   AZIMUTHAL,
+  CELLADJOINT,
+  CELLSOURCEADJOINT,
   CELLBORN,
   CELLFROM,
   CELL,
@@ -34,6 +36,9 @@ enum class FilterType {
   MESH,
   MESHBORN,
   MESH_MATERIAL,
+  MESHCHAR,
+  ADJOINTMESH,
+  ADJOINTSOURCEMESH,
   MESH_SURFACE,
   MU,
   MUSURFACE,

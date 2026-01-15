@@ -438,6 +438,10 @@ class StatePoint:
                     if 'higher_moments' in group.attrs:
                         tally.higher_moments = bool(group.attrs['higher_moments'][()])
 
+                    # Check if tally has virtual_tally attribute
+                    if 'virtual_tally' in group.attrs:
+                        tally.virtual_tally = bool(group.attrs['virtual_tally'][()])
+
                     # Read the number of realizations
                     n_realizations = group['n_realizations'][()]
 

@@ -600,7 +600,11 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
       if (i_nuclide >= 0) {
         if (p.type().is_neutron()) {
           score = p.neutron_xs(i_nuclide).total * atom_density * flux;
-        } else if (p.type().is_photon()) {
+        } 
+        else if (p.type().is_neutron_contributon()) {
+          score = p.neutron_xs(i_nuclide).total * atom_density * flux;
+        }
+        else if (p.type().is_photon()) {
           score = p.photon_xs(i_nuclide).total * atom_density * flux;
         }
       } else {
@@ -617,19 +621,24 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
       break;
 
     case SCORE_SCATTER:
-      if (!p.type().is_neutron() && !p.type().is_photon())
+      if (!p.type().is_neutron() && !p.type().is_neutron_contributon() && !p.type().is_photon())
         continue;
 
       if (i_nuclide >= 0) {
         if (p.type().is_neutron()) {
           const auto& micro = p.neutron_xs(i_nuclide);
           score = (micro.total - micro.absorption) * atom_density * flux;
-        } else {
+        } else if (p.type().is_neutron_contributon()) {
+          const auto& micro = p.neutron_xs(i_nuclide);
+          score = (micro.total - micro.absorption) * atom_density * flux;
+        }else {
           const auto& micro = p.photon_xs(i_nuclide);
           score = (micro.coherent + micro.incoherent) * atom_density * flux;
         }
       } else {
         if (p.type().is_neutron()) {
+          score = (p.macro_xs().total - p.macro_xs().absorption) * flux;
+        } else if (p.type().is_neutron_contributon()) {
           score = (p.macro_xs().total - p.macro_xs().absorption) * flux;
         } else {
           score = (p.macro_xs().coherent + p.macro_xs().incoherent) * flux;
@@ -638,11 +647,13 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
       break;
 
     case SCORE_ABSORPTION:
-      if (!p.type().is_neutron() && !p.type().is_photon())
+      if (!p.type().is_neutron() && !p.type().is_neutron_contributon() && !p.type().is_photon())
         continue;
 
       if (i_nuclide >= 0) {
         if (p.type().is_neutron()) {
+          score = p.neutron_xs(i_nuclide).absorption * atom_density * flux;
+        } else if (p.type().is_neutron_contributon()){
           score = p.neutron_xs(i_nuclide).absorption * atom_density * flux;
         } else {
           const auto& xs = p.photon_xs(i_nuclide);
@@ -651,6 +662,8 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
         }
       } else {
         if (p.type().is_neutron()) {
+          score = p.macro_xs().absorption * flux;
+        } else if (p.type().is_neutron_contributon()) {
           score = p.macro_xs().absorption * flux;
         } else {
           score =
@@ -910,7 +923,7 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
       break;
 
     case ELASTIC:
-      if (!p.type().is_neutron())
+      if (!p.type().is_neutron() && !p.type().is_neutron_contributon())
         continue;
 
       if (i_nuclide >= 0) {
@@ -1138,7 +1151,7 @@ void score_general_ce_analog(Particle& p, int i_tally, int start_index,
       // All events score to a flux bin. We actually use a collision estimator
       // in place of an analog one since there is no way to count 'events'
       // exactly for the flux
-      if (p.type().is_neutron() || p.type().is_photon()) {
+      if (p.type().is_neutron() || p.type().is_neutron_contributon() || p.type().is_photon()) {
         score = flux * p.wgt_last() / p.macro_xs().total;
       } else {
         score = 0.;
@@ -1162,7 +1175,7 @@ void score_general_ce_analog(Particle& p, int i_tally, int start_index,
       break;
 
     case SCORE_SCATTER:
-      if (!p.type().is_neutron() && !p.type().is_photon())
+      if (!p.type().is_neutron() && !p.type().is_neutron_contributon() && !p.type().is_photon())
         continue;
 
       // Skip any event where the particle didn't scatter
@@ -1199,7 +1212,7 @@ void score_general_ce_analog(Particle& p, int i_tally, int start_index,
       break;
 
     case SCORE_ABSORPTION:
-      if (!p.type().is_neutron() && !p.type().is_photon())
+      if (!p.type().is_neutron() && !p.type().is_neutron_contributon() && !p.type().is_photon())
         continue;
 
       if (settings::survival_biasing) {
@@ -1519,7 +1532,7 @@ void score_general_ce_analog(Particle& p, int i_tally, int start_index,
       break;
 
     case ELASTIC:
-      if (!p.type().is_neutron())
+      if (!p.type().is_neutron() && !p.type().is_neutron_contributon())
         continue;
 
       // Check if event MT matches
@@ -2313,6 +2326,10 @@ void score_analog_tally_ce(Particle& p)
   // electrons/positrons.
   double flux = (p.type().is_neutron() || p.type().is_photon()) ? 1.0 : 0.0;
 
+  if(p.type().is_neutron_contributon()){
+    flux = 1.0 * p.wgt_previous();
+  }
+
   for (auto i_tally : model::active_analog_tallies) {
     const Tally& tally {*model::tallies[i_tally]};
 
@@ -2322,6 +2339,8 @@ void score_analog_tally_ce(Particle& p)
     auto filter_iter = FilterBinIter(tally, p);
     auto end = FilterBinIter(tally, true, &p.filter_matches());
     if (filter_iter == end)
+      continue;
+    if (tally.virtual_tally() == false &&  p.type().is_neutron_contributon())
       continue;
 
     // Loop over filter bins.
@@ -2367,6 +2386,8 @@ void score_analog_tally_mg(Particle& p)
     auto end = FilterBinIter(tally, true, &p.filter_matches());
     if (filter_iter == end)
       continue;
+    if (tally.virtual_tally() == false &&  p.type().is_neutron_contributon())
+      continue;
 
     // Loop over filter bins.
     for (; filter_iter != end; ++filter_iter) {
@@ -2408,6 +2429,11 @@ void score_analog_tally_mg(Particle& p)
 void score_tracklength_tally_general(
   Particle& p, double flux, const vector<int>& tallies)
 {
+
+  if(p.type().is_neutron_contributon()){
+    flux = flux*p.wgt_previous();
+  }
+
   // Set 'none' value for log union grid index
   int i_log_union = C_NONE;
 
@@ -2420,6 +2446,8 @@ void score_tracklength_tally_general(
     auto filter_iter = FilterBinIter(tally, p);
     auto end = FilterBinIter(tally, true, &p.filter_matches());
     if (filter_iter == end)
+      continue;
+    if (tally.virtual_tally() == false &&  p.type().is_neutron_contributon())
       continue;
 
     // Loop over filter bins.
@@ -2537,6 +2565,9 @@ void score_collision_tally(Particle& p)
   if (p.type().is_neutron() || p.type().is_photon()) {
     flux = p.wgt_last() / p.macro_xs().total;
   }
+  if(p.type().is_neutron_contributon()){
+    flux = p.wgt_last()*p.wgt_previous() / p.macro_xs().total;
+  }
 
   // Set 'none value for log union grid index
   int i_log_union = C_NONE;
@@ -2550,6 +2581,8 @@ void score_collision_tally(Particle& p)
     auto filter_iter = FilterBinIter(tally, p);
     auto end = FilterBinIter(tally, true, &p.filter_matches());
     if (filter_iter == end)
+      continue;
+    if (tally.virtual_tally() == false &&  p.type().is_neutron_contributon())
       continue;
 
     // Loop over filter bins.
@@ -2613,15 +2646,21 @@ void score_meshsurface_tally(Particle& p, const vector<int>& tallies)
 {
   double current = p.wgt_last();
 
+  if(p.type().is_neutron_contributon()){
+    current*=p.wgt_previous();
+  }
+
   for (auto i_tally : tallies) {
     auto& tally {*model::tallies[i_tally]};
-
+  
     // Initialize an iterator over valid filter bin combinations.  If there are
     // no valid combinations, use a continue statement to ensure we skip the
     // assume_separate break below.
     auto filter_iter = FilterBinIter(tally, p);
     auto end = FilterBinIter(tally, true, &p.filter_matches());
     if (filter_iter == end)
+      continue;
+    if (tally.virtual_tally() == false &&  p.type().is_neutron_contributon())
       continue;
 
     // Loop over filter bins.
@@ -2759,7 +2798,8 @@ void score_pulse_height_tally(Particle& p, const vector<int>& tallies)
       auto end = FilterBinIter(tally, true, &p.filter_matches());
       if (filter_iter == end)
         continue;
-
+      if (tally.virtual_tally() == false &&  p.type().is_neutron_contributon())
+        continue;
       // Loop over filter bins.
       for (; filter_iter != end; ++filter_iter) {
         auto filter_index = filter_iter.index_;

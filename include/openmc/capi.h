@@ -103,6 +103,8 @@ int openmc_material_set_name(int32_t index, const char* name);
 int openmc_material_set_volume(int32_t index, double volume);
 int openmc_material_get_depletable(int32_t index, bool* depletable);
 int openmc_material_set_depletable(int32_t index, bool depletable);
+int openmc_material_get_run_contributon(int32_t index, bool* run_contributon);
+int openmc_material_set_run_contributon(int32_t index, bool run_contributon);
 int openmc_material_filter_get_bins(
   int32_t index, const int32_t** bins, size_t* n);
 int openmc_material_filter_set_bins(

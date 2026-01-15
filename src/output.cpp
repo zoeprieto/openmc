@@ -174,6 +174,9 @@ void print_particle(Particle& p)
   case PDG_POSITRON:
     fmt::print("Positron ");
     break;
+  case ParticleType::neutron_contributon:
+    fmt::print("Neutron_Contributon ");
+    break;
   default:
     fmt::print("Particle {} ", p.type().str());
   }

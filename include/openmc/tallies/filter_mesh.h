@@ -68,5 +68,6 @@ protected:
   vector<double> rotation_; //!< Filter rotation
 };
 
+
 } // namespace openmc
 #endif // OPENMC_TALLIES_FILTER_MESH_H

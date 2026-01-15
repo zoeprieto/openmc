@@ -49,6 +49,7 @@ void collision(Particle& p)
   // Sample reaction for the material the particle is in
   switch (p.type().pdg_number()) {
   case PDG_NEUTRON:
+  case PDF_NEUTRON_CONTRIBUTON:
     sample_neutron_reaction(p);
     break;
   case PDG_PHOTON:
@@ -87,7 +88,7 @@ void collision(Particle& p)
     std::string msg;
     if (p.event() == TallyEvent::KILL) {
       msg = fmt::format("    Killed. Energy = {} eV.", p.E());
-    } else if (p.type().is_neutron()) {
+    } else if (p.type().is_neutron() || p.type().is_neutron_contributon()) {
       msg = fmt::format("    {} with {}. Energy = {} eV.",
         reaction_name(p.event_mt()), data::nuclides[p.event_nuclide()]->name_,
         p.E());
@@ -119,10 +120,10 @@ void sample_neutron_reaction(Particle& p)
 
   if (nuc->fissionable_ && p.neutron_xs(i_nuclide).fission > 0.0) {
     auto& rx = sample_fission(i_nuclide, p);
-    if (settings::run_mode == RunMode::EIGENVALUE) {
+    if (settings::run_mode == RunMode::EIGENVALUE && p.type() == ParticleType::neutron) {
       create_fission_sites(p, i_nuclide, rx);
     } else if (settings::run_mode == RunMode::FIXED_SOURCE &&
-               settings::create_fission_neutrons) {
+               settings::create_fission_neutrons && p.type() == ParticleType::neutron) {
       create_fission_sites(p, i_nuclide, rx);
 
       // Make sure particle population doesn't grow out of control for
@@ -145,6 +146,19 @@ void sample_neutron_reaction(Particle& p)
   // If survival biasing is being used, the following subroutine adjusts the
   // weight of the particle. Otherwise, it checks to see if absorption occurs
 
+  // Get pointers to nuclide/density arrays
+  const auto& mat {model::materials[p.material()]};
+  bool run_contributon = mat->run_contributon();
+
+  // Create neutron contributons
+  if (run_contributon && p.type() != ParticleType::neutron_contributon) {
+    p.create_secondary(p.wgt(), p.u(), p.E(), ParticleType::neutron_contributon);
+    // Display message if high verbosity or trace is on
+    if (settings::verbosity >= 9 || p.trace()) {
+    write_message("Creating contributon in {}", p.r());
+    }
+  }
+
   if (p.neutron_xs(i_nuclide).absorption > 0.0) {
     absorption(p, i_nuclide);
   }
@@ -160,6 +174,8 @@ void sample_neutron_reaction(Particle& p)
     scatter(p, i_nuclide);
   }
 
+
+  
   // Advance URR seed stream 'N' times after energy changes
   if (p.E() != p.E_last()) {
     advance_prn_seed(data::nuclides.size(), &p.seeds(STREAM_URR_PTABLE));
@@ -653,7 +669,7 @@ void absorption(Particle& p, int i_nuclide)
     p.wgt() -= wgt_absorb;
 
     // Score implicit absorption estimate of keff
-    if (settings::run_mode == RunMode::EIGENVALUE) {
+    if (settings::run_mode == RunMode::EIGENVALUE && p.type() == ParticleType::neutron) {
       p.keff_tally_absorption() += wgt_absorb *
                                    p.neutron_xs(i_nuclide).nu_fission /
                                    p.neutron_xs(i_nuclide).absorption;
@@ -663,7 +679,7 @@ void absorption(Particle& p, int i_nuclide)
     if (p.neutron_xs(i_nuclide).absorption >
         prn(p.current_seed()) * p.neutron_xs(i_nuclide).total) {
       // Score absorption estimate of keff
-      if (settings::run_mode == RunMode::EIGENVALUE) {
+      if (settings::run_mode == RunMode::EIGENVALUE && p.type() == ParticleType::neutron) {
         p.keff_tally_absorption() += p.wgt() *
                                      p.neutron_xs(i_nuclide).nu_fission /
                                      p.neutron_xs(i_nuclide).absorption;

@@ -433,6 +433,8 @@ list(APPEND libopenmc_SOURCES
   src/tallies/filter_azimuthal.cpp
   src/tallies/filter_cell.cpp
   src/tallies/filter_cell_instance.cpp
+  src/tallies/filter_celladjoint.cpp
+  src/tallies/filter_cellsourceadjoint.cpp
   src/tallies/filter_cellborn.cpp
   src/tallies/filter_cellfrom.cpp
   src/tallies/filter_collision.cpp
@@ -446,6 +448,9 @@ list(APPEND libopenmc_SOURCES
   src/tallies/filter_mesh.cpp
   src/tallies/filter_meshborn.cpp
   src/tallies/filter_meshmaterial.cpp
+  src/tallies/filter_adjointmesh.cpp
+  src/tallies/filter_adjointsourcemesh.cpp
+  src/tallies/filter_meshchar.cpp
   src/tallies/filter_meshsurface.cpp
   src/tallies/filter_mu.cpp
   src/tallies/filter_musurface.cpp

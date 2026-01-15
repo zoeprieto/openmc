@@ -64,6 +64,14 @@ void sample_reaction(Particle& p)
       create_fission_sites(p);
     }
   }
+  // Create neutron contributons
+  if (p.type() != ParticleType::neutron_contributon) {
+    p.create_secondary(p.wgt(), p.u(), p.E(), ParticleType::neutron_contributon);
+    // Display message if high verbosity or trace is on
+    if (settings::verbosity >= 9 || p.trace()) {
+    write_message("Creating contributon in {}", p.r());
+    }
+  }
 
   // If survival biasing is being used, the following subroutine adjusts the
   // weight of the particle. Otherwise, it checks to see if absorption occurs.

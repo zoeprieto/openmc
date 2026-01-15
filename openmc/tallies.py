@@ -119,6 +119,8 @@ class Tally(IDManagerMixin):
         An array containing the variance of the variance for each tally bin
     higher_moments : bool
         Whether or not the tally accumulates the sums third and fourth to compute higher-order moments
+    virtual_tally : bool
+        Whether or not to count virtual particles
     figure_of_merit : numpy.ndarray
         An array containing the figure of merit for each bin
 
@@ -161,6 +163,7 @@ class Tally(IDManagerMixin):
         self._std_dev = None
         self._vov = None
         self._higher_moments = False
+        self._virtual_tally = False
         self._simulation_time = None
         self._with_batch_statistics = False
         self._derived = False
@@ -272,6 +275,15 @@ class Tally(IDManagerMixin):
     def higher_moments(self, value):
         cv.check_type("higher_moments", value, bool)
         self._higher_moments = value
+
+    @property
+    def virtual_tally(self) -> bool:
+        return self._virtual_tally
+
+    @virtual_tally.setter
+    def virtual_tally(self, value):
+        cv.check_type("virtual_tally", value, bool)
+        self._virtual_tally = value
 
     @property
     def filters(self):
@@ -433,6 +445,12 @@ class Tally(IDManagerMixin):
                 self._higher_moments = bool(group.attrs["higher_moments"][()])
             else:
                 self._higher_moments = False
+
+            # Check for virtual_tally attribute
+            if "virtual_tally" in group.attrs:
+                self._virtual_tally = bool(group.attrs["virtual_tally"][()])
+            else:
+                self._virtual_tally = False
 
             # Extract Tally data from the file
             data = group['results']
@@ -1460,6 +1478,11 @@ class Tally(IDManagerMixin):
             subelement = ET.SubElement(element, "higher_moments")
             subelement.text = str(self.higher_moments).lower()
 
+        # Optional virtual tally counter
+        if self.virtual_tally:
+            subelement = ET.SubElement(element, "virtual_tally")
+            subelement.text = str(self.virtual_tally).lower()
+
         return element
 
     def add_results(self, statepoint: cv.PathLike | openmc.StatePoint):
@@ -1492,6 +1515,7 @@ class Tally(IDManagerMixin):
         self._std_dev = None
         self._vov = None
         self._higher_moments = False
+        self._virtual_tally = False
         self._num_realizations = 0
         self._results_read = False
 

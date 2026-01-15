@@ -208,6 +208,12 @@ extern "C" int openmc_statepoint_write(const char* filename, bool* write_source)
           write_attribute(tally_group, "higher_moments", 0);
         }
 
+        if (tally->virtual_tally()) {
+          write_attribute(tally_group, "virtual_tally", 1);
+        } else {
+          write_attribute(tally_group, "virtual_tally", 0);
+        }
+
         if (tally->estimator_ == TallyEstimator::ANALOG) {
           write_dataset(tally_group, "estimator", "analog");
         } else if (tally->estimator_ == TallyEstimator::TRACKLENGTH) {

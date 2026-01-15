@@ -98,6 +98,8 @@ class Material(IDManagerMixin):
         applies in the case of a multi-group calculation.
     depletable : bool
         Indicate whether the material is depletable.
+    run_ : bool
+        Indicate whether the material run contributons.
     nuclides : list of namedtuple
         List in which each item is a namedtuple consisting of a nuclide string,
         the percent density, and the percent type ('ao' or 'wo'). The namedtuple
@@ -142,6 +144,7 @@ class Material(IDManagerMixin):
         density: float | None = None,
         density_units: str = "sum",
         depletable: bool | None = False,
+        run_contributon: bool | None = False,
         volume: float | None = None,
         components: dict | None = None,
         percent_type: str = "ao",
@@ -153,6 +156,7 @@ class Material(IDManagerMixin):
         self._density = None
         self._density_units = density_units
         self._depletable = depletable
+        self._run_contributon = run_contributon
         self._paths = None
         self._num_instances = None
         self._volume = volume
@@ -190,7 +194,7 @@ class Material(IDManagerMixin):
 
         string += '{: <16}=\t{} [cm^3]\n'.format('\tVolume', self._volume)
         string += '{: <16}=\t{}\n'.format('\tDepletable', self._depletable)
-
+        string += '{: <16}=\t{}\n'.format('\tRun contributon', self._run_contributon)
         string += '{: <16}\n'.format('\tS(a,b) Tables')
 
         if self._ncrystal_cfg:
@@ -251,6 +255,16 @@ class Material(IDManagerMixin):
         cv.check_type(f'Depletable flag for Material ID="{self._id}"',
                       depletable, bool)
         self._depletable = depletable
+
+    @property
+    def run_contributon(self) -> bool:
+        return self._run_contributon
+
+    @run_contributon.setter
+    def run_contributon(self, run_contributon: bool):
+        cv.check_type(f'Run_contributon flag for Material ID="{self._id}"',
+                      run_contributon, bool)
+        self._run_contributon = run_contributon
 
     @property
     def paths(self) -> list[str]:
@@ -623,6 +637,7 @@ class Material(IDManagerMixin):
         # Create the Material
         material = cls(mat_id, name)
         material.depletable = bool(group.attrs['depletable'])
+        material.run_contributon = bool(group.attrs['run_contributon'])
         if 'volume' in group.attrs:
             material.volume = group.attrs['volume']
         if "temperature" in group.attrs:
@@ -1759,6 +1774,9 @@ class Material(IDManagerMixin):
         if self._depletable:
             element.set("depletable", "true")
 
+        if self._run_contributon:
+            element.set("run_contributon", "true")
+
         if self._volume:
             element.set("volume", str(self._volume))
 
@@ -1949,6 +1967,10 @@ class Material(IDManagerMixin):
         # Get depletable attribute
         depletable = get_text(elem, "depletable")
         mat.depletable = depletable in ('true', '1')
+        
+        # Get run_contributon attribute
+        run_contributon = get_text(elem, "run_contributon")
+        mat.run_contributon = run_contributon in ('true', '1')
 
         # Get each S(a,b) table
         for sab in elem.findall('sab'):

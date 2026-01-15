@@ -1136,7 +1136,7 @@ class Settings:
             elif key == 'survival_normalization':
                 cv.check_type('survival normalization', cutoff[key], bool)
             elif key in ['energy_neutron', 'energy_photon', 'energy_electron',
-                         'energy_positron']:
+                         'energy_positron', 'energy_neutron_contributon']:
                 cv.check_type('energy cutoff', cutoff[key], Real)
                 cv.check_greater_than('energy cutoff', cutoff[key], 0.0)
             else:
@@ -2235,9 +2235,10 @@ class Settings:
         if elem is not None:
             self.cutoff = {}
             for key in ('energy_neutron', 'energy_photon', 'energy_electron',
-                        'energy_positron', 'weight', 'weight_avg', 'time_neutron',
+                        'energy_positron', 'energy_neutron_contributon', 
+                        'weight', 'weight_avg', 'time_neutron',
                         'time_photon', 'time_electron', 'time_positron',
-                        'survival_normalization'):
+                        'survival_normalization', 'time_neutron_contributon'):
                 value = get_text(elem, key)
                 if value is not None:
                     if key == 'survival_normalization':
