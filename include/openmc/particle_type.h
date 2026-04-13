@@ -21,6 +21,7 @@ namespace openmc {
 //------------------------------------------------------------------------------
 
 inline constexpr int32_t PDG_NEUTRON = 2112;
+inline constexpr int32_t PDG_NEUTRON_CONTRIBUTON = 21120;
 inline constexpr int32_t PDG_PHOTON = 22;
 inline constexpr int32_t PDG_ELECTRON = 11;
 inline constexpr int32_t PDG_POSITRON = -11;
@@ -89,6 +90,9 @@ public:
   // Check if this is a neutron
   constexpr bool is_neutron() const { return pdg_number_ == PDG_NEUTRON; }
 
+  // Check if this is a neutron contributon
+    constexpr bool is_neutron_contributon() const { return pdg_number_ == PDG_NEUTRON_CONTRIBUTON; }
+
   // Check if this is a photon
   constexpr bool is_photon() const { return pdg_number_ == PDG_PHOTON; }
 
@@ -101,6 +105,7 @@ public:
   // Static factory methods
 
   static constexpr ParticleType neutron() { return ParticleType {PDG_NEUTRON}; }
+  static constexpr ParticleType neutron_contributon() { return ParticleType {PDG_NEUTRON_CONTRIBUTON}; }
   static constexpr ParticleType photon() { return ParticleType {PDG_PHOTON}; }
   static constexpr ParticleType electron()
   {
@@ -167,6 +172,8 @@ constexpr int ParticleType::transport_index() const
     return 2;
   case PDG_POSITRON:
     return 3;
+  case PDG_NEUTRON_CONTRIBUTON:
+    return 4;
   default:
     return C_NONE;
   }

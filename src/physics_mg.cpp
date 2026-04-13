@@ -65,8 +65,8 @@ void sample_reaction(Particle& p)
     }
   }
   // Create neutron contributons
-  if (p.type() != ParticleType::neutron_contributon) {
-    p.create_secondary(p.wgt(), p.u(), p.E(), ParticleType::neutron_contributon);
+  if (!p.type().is_neutron_contributon()) {
+    p.create_secondary(p.wgt(), p.u(), p.E(), ParticleType::neutron_contributon());
     // Display message if high verbosity or trace is on
     if (settings::verbosity >= 9 || p.trace()) {
     write_message("Creating contributon in {}", p.r());

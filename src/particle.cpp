@@ -69,7 +69,7 @@ double Particle::mass() const
 {
   switch (type().pdg_number()) {
   case PDG_NEUTRON:
-  case PDF_NEUTRON_CONTRIBUTON:
+  case PDG_NEUTRON_CONTRIBUTON:
     return MASS_NEUTRON_EV;
   case PDG_ELECTRON:
   case PDG_POSITRON:
@@ -691,7 +691,7 @@ void Particle::cross_vacuum_bc(const Surface& surf)
   }
 
   // Score to global leakage tally
-  if(type() == ParticleType::neutron) {
+  if(type().is_neutron()) {
     keff_tally_leakage() += wgt();
   }
   

@@ -2719,7 +2719,9 @@ void score_surface_tally(
     auto end = FilterBinIter(tally, true, &p.filter_matches());
     if (filter_iter == end)
       continue;
-
+    if (tally.virtual_tally() == false &&  p.type().is_neutron_contributon())
+      continue;
+      
     // Loop over filter bins.
     for (; filter_iter != end; ++filter_iter) {
       auto filter_index = filter_iter.index_;

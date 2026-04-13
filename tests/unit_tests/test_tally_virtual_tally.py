@@ -70,7 +70,7 @@ def test_adjoint_magnitudes(run_in_tmpdir):
 
     # Set up a neutron flux tally
 
-    filtro_particula_contributon = openmc.ParticleFilter('neutron_contributon', filter_id = 1)
+    filtro_particula_contributon = openmc.ParticleFilter(['neutron_contributon'], filter_id = 1)
     filtro_surface = openmc.SurfaceFilter(sph.id, filter_id = 2)
     filtro_cell = openmc.CellFilter([cell.id], filter_id = 3)
     filtro_cell_1 = openmc.CellAdjointFilter([cell.id], filter_id = 4)
@@ -101,4 +101,4 @@ def test_adjoint_magnitudes(run_in_tmpdir):
     
     assert fcorr.get_values() == pytest.approx(dcorr.get_values(), rel=1e-6)
     assert fcorr.get_values() == pytest.approx(reaction_rate.get_values(), rel=1e-6)
-    assert reaction_rate.get_values() == pytest.approx(reaction_rate.get_values(), rel=1e-6)
+    assert dcorr.get_values() == pytest.approx(reaction_rate.get_values(), rel=1e-6)

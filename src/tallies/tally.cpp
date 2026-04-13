@@ -267,7 +267,7 @@ Tally::Tally(pugi::xml_node node)
     const auto& f = model::tally_filters[particle_filter_index].get();
     auto pf = dynamic_cast<ParticleFilter*>(f);
     for (auto p : pf->particles()) {
-      if (p == ParticleType::neutron_contributon && this->virtual_tally() == false) {
+      if (p.is_neutron_contributon() && this->virtual_tally() == false) {
         fatal_error("Contributon particles have to be used in combination with virtual "
                     "tally attribute.");
       }

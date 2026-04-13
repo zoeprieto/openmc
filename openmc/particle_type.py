@@ -5,6 +5,7 @@ from openmc.data import gnds_name, zam, ATOMIC_SYMBOL
 
 _PDG_NAME = {
     2112: 'neutron',
+    21120: 'neutron_contributon',
     22: 'photon',
     11: 'electron',
     -11: 'positron',
@@ -13,6 +14,7 @@ _PDG_NAME = {
 
 _ALIAS_PDG = {
     'neutron': 2112,
+    'neutron_contributon': 21120,
     'n': 2112,
     'photon': 22,
     'gamma': 22,
@@ -36,6 +38,7 @@ _LEGACY_PARTICLE_INDEX = {
     1: 22,
     2: 11,
     3: -11,
+    4: 21120,
 }
 
 
@@ -219,6 +222,7 @@ class ParticleType:
 
 # Define common particle constants
 ParticleType.NEUTRON = ParticleType(2112)
+ParticleType.NEUTRON_CONTRIBUTON = ParticleType(21120)
 ParticleType.PHOTON = ParticleType(22)
 ParticleType.ELECTRON = ParticleType(11)
 ParticleType.POSITRON = ParticleType(-11)

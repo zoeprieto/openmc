@@ -157,6 +157,10 @@ ParticleType::ParticleType(std::string_view str)
     pdg_number_ = PDG_NEUTRON;
     return;
   }
+  if (lower == "neutron_contributon" || lower == "nc") {
+    pdg_number_ = PDG_NEUTRON_CONTRIBUTON;
+    return;
+  }
   if (lower == "photon" || lower == "gamma") {
     pdg_number_ = PDG_PHOTON;
     return;
@@ -206,6 +210,8 @@ std::string ParticleType::str() const
 {
   if (pdg_number_ == PDG_NEUTRON)
     return "neutron";
+  if (pdg_number_ == PDG_NEUTRON_CONTRIBUTON)
+    return "neutron_contributon";
   if (pdg_number_ == PDG_PHOTON)
     return "photon";
   if (pdg_number_ == PDG_ELECTRON)
@@ -237,6 +243,8 @@ ParticleType legacy_particle_index_to_type(int index)
     return ParticleType {PDG_ELECTRON};
   case 3:
     return ParticleType {PDG_POSITRON};
+  case 4:
+    return ParticleType {PDG_NEUTRON_CONTRIBUTON};
   default:
     throw std::invalid_argument {
       "Invalid legacy particle index: " + std::to_string(index)};
