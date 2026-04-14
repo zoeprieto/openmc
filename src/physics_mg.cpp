@@ -58,9 +58,9 @@ void sample_reaction(Particle& p)
   // absorption (including fission)
 
   if (model::materials[p.material()]->fissionable()) {
-    if (settings::run_mode == RunMode::EIGENVALUE ||
+    if ((settings::run_mode == RunMode::EIGENVALUE && p.type().is_neutron())||
         (settings::run_mode == RunMode::FIXED_SOURCE &&
-          settings::create_fission_neutrons)) {
+          settings::create_fission_neutrons && p.type().is_neutron())) {
       create_fission_sites(p);
     }
   }
