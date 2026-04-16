@@ -1165,7 +1165,7 @@ class AdjointMeshFilter(MeshFilter):
         The number of filter bins
     """
 
-    class MeshBornFilter(MeshFilter):
+class MeshBornFilter(MeshFilter):
     """Filter events by the mesh cell a particle originated from.
 
     Parameters
