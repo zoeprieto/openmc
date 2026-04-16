@@ -2697,6 +2697,10 @@ void score_surface_tally(
 {
   double wgt = p.wgt_last();
 
+  if(p.type().is_neutron_contributon()){
+    wgt*=p.wgt_previous();
+  }
+
   double mu = std::clamp(p.u().dot(normal), -1.0, 1.0);
 
   // Sign for net current: +1 if crossing outward (in direction of normal),
